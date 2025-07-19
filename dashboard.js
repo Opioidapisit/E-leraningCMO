@@ -1,7 +1,7 @@
 const SHEET_ID = "1C1_T3n_rBNv4fv3Hhea13AmUESLM36qnZtnB1Ocr-Do";
 const SHEET_QUIZ_RANGE = "quiz!A2:C";
 const SHEET_VIDEO_RANGE = "videos!A2:A";
-const API_KEY = "ใAIzaSyCpgHhBgWP_g1bAq5LcgMkRTzKwcVJZGAo";
+const API_KEY = "AIzaSyCpgHhBgWP_g1bAq5LcgMkRTzKwcVJZGAo";
 
 const user = JSON.parse(sessionStorage.getItem("user"));
 if (!user) location.href = "index.html";
