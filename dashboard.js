@@ -1,9 +1,7 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-const supabase = createClient(
-  "https://jrtpzuolfukhjxaylfyg.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHB6dW9sZnVraGp4YXlsZnlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTQwODEsImV4cCI6MjA2NTQzMDA4MX0.2s-epXqs7f3jCzJolNqHPDXuB1B77iNIvN-26TVswLA"
-);
+const SHEET_ID = "1C1_T3n_rBNv4fv3Hhea13AmUESLM36qnZtnB1Ocr-Do";
+const SHEET_QUIZ_RANGE = "quiz!A2:C";
+const SHEET_VIDEO_RANGE = "videos!A2:A";
+const API_KEY = "AIzaSyCpgHhBgWP_g1bAq5LcgMkRTzKwcVJZGAo";
 
 const user = JSON.parse(sessionStorage.getItem("user"));
 if (!user) location.href = "index.html";
@@ -15,88 +13,33 @@ function logout() {
 }
 window.logout = logout;
 
-const loadVideo = async () => {
-  const { data, error } = await supabase
-    .from("video_links")
-    .select("*")
-    .order("id", { ascending: false })
-    .limit(1);
-
-  console.log("video_links data:", data, "error:", error);
-
-  const videoArea = document.getElementById("videoArea");
-
-  if (data && data.length > 0) {
-    const link = data[0].link;
-    videoArea.innerHTML = `<a href="${link}" target="_blank" style="font-size: 18px;">🎥 คลิกเพื่อดูวิดีโอ</a>`;
+async function loadVideo() {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_VIDEO_RANGE}?key=${API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.values && data.values.length > 0) {
+    document.getElementById("videoArea").innerHTML =
+      `<a href="${data.values[0][0]}" target="_blank">🎬 คลิกเพื่อชมวิดีโอ</a>`;
   } else {
-    videoArea.innerText = "ยังไม่มีคลิปวิดีโอ";
+    document.getElementById("videoArea").innerText = "ยังไม่มีวิดีโอ";
   }
-};
+}
 
-const checkQuizStatus = async () => {
-  const { data: results } = await supabase
-    .from("quiz_results")
-    .select("*")
-    .eq("username", user.username)
-    .order("id", { ascending: false })
-    .limit(1);
-
-  const statusEl = document.getElementById("quizStatus");
-
-  if (!results || results.length === 0) {
-    statusEl.innerText = "สถานะการสอบ: ยังไม่ทำแบบทดสอบ";
-    return "ยังไม่ทำ";
-  }
-
-  const lastScore = results[0].score;
-  if (lastScore >= 9) {
-    statusEl.innerText = "สถานะการสอบ: ผ่าน";
-    return "ผ่าน";
-  } else {
-    statusEl.innerText = "สถานะการสอบ: ไม่ผ่าน";
-    return "ไม่ผ่าน";
-  }
-};
-
-window.startQuiz = async () => {
-  const status = await checkQuizStatus();
-  if (status === "ผ่าน") {
-    alert("คุณได้ผ่านการทดสอบแล้ว ไม่สามารถทำซ้ำได้จนกว่าจะมีแบบทดสอบใหม่ ❗");
-    return;
-  }
-
-  const { data: quiz } = await supabase.from("quiz").select("*");
-  if (!quiz || quiz.length === 0) {
-    alert("ยังไม่มีแบบทดสอบ ❌");
-    return;
-  }
+async function startQuiz() {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_QUIZ_RANGE}?key=${API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!data.values) return alert("ไม่มีแบบทดสอบ");
 
   let score = 0;
-  for (let i = 0; i < quiz.length; i++) {
-    const q = quiz[i];
-    const answer = prompt(
-      `ข้อ ${i + 1}/${quiz.length}:
-${q.question}
-
-${q.choices
-        .map((c, idx) => `${idx + 1}. ${c}`)
-        .join("\n")}`
-    );
-    if (parseInt(answer) - 1 === q.answer) score++;
+  for (let i = 0; i < data.values.length; i++) {
+    const [question, choiceStr, answer] = data.values[i];
+    const choices = JSON.parse(choiceStr);
+    const reply = prompt(`ข้อ ${i + 1}: ${question}\n\n${choices.map((c, j) => (j + 1) + ". " + c).join("\n")}`);
+    if (parseInt(reply) - 1 === parseInt(answer)) score++;
   }
-
-  await supabase.from("quiz_results").insert([{ username: user.username, score }]);
-
-  if (score >= 9) {
-    alert("🎉 ผ่านการทดสอบแล้ว!");
-    document.getElementById("quizStatus").innerText = "สถานะการสอบ: ผ่าน";
-  } else {
-    alert("❌ ไม่ผ่านการทดสอบ กรุณาทำใหม่");
-    document.getElementById("quizStatus").innerText = "สถานะการสอบ: ไม่ผ่าน";
-  }
-};
+  alert("คุณได้คะแนน: " + score + "/" + data.values.length);
+  document.getElementById("quizStatus").innerText = score >= 9 ? "ผ่าน" : "ไม่ผ่าน";
+}
 
 loadVideo();
-checkQuizStatus();
-console.log("User:", user);
