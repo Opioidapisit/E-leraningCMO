@@ -5,20 +5,17 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHB6dW9sZnVraGp4YXlsZnlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTQwODEsImV4cCI6MjA2NTQzMDA4MX0.2s-epXqs7f3jCzJolNqHPDXuB1B77iNIvN-26TVswLA"
 );
 
-// ดึงข้อมูลผู้ใช้
 const user = JSON.parse(sessionStorage.getItem("user"));
 if (!user) location.href = "index.html";
 document.getElementById("welcome").innerText = "ยินดีต้อนรับ " + user.name;
 
-// ปุ่มออกจากระบบ
 function logout() {
   sessionStorage.clear();
   location.href = "index.html";
 }
 window.logout = logout;
 
-// โหลดวิดีโอล่าสุดจาก Supabase
-async function loadVideo() {
+const loadVideo = async () => {
   const { data, error } = await supabase
     .from("video_links")
     .select("*")
@@ -30,17 +27,21 @@ async function loadVideo() {
   if (data && data.length > 0) {
     const rawLink = data[0].link;
     let embedLink = rawLink;
+
     if (rawLink.includes("/view")) {
       embedLink = rawLink.replace("/view", "/preview");
+    } else if (rawLink.includes("file/d/")) {
+      const fileId = rawLink.split("/d/")[1].split("/")[0];
+      embedLink = `https://drive.google.com/file/d/${fileId}/preview`;
     }
+
     document.getElementById("videoArea").innerHTML = `<iframe src="${embedLink}" width="100%" height="300" allow="autoplay"></iframe>`;
   } else {
     document.getElementById("videoArea").innerText = "ยังไม่มีคลิปวิดีโอ";
   }
-}
+};
 
-// ตรวจสอบสถานะการสอบ
-async function checkQuizStatus() {
+const checkQuizStatus = async () => {
   const { data: results } = await supabase
     .from("quiz_results")
     .select("*")
@@ -63,9 +64,8 @@ async function checkQuizStatus() {
     statusEl.innerText = "สถานะการสอบ: ไม่ผ่าน";
     return "ไม่ผ่าน";
   }
-}
+};
 
-// ฟังก์ชันเริ่มทำแบบทดสอบ
 window.startQuiz = async () => {
   const status = await checkQuizStatus();
   if (status === "ผ่าน") {
@@ -83,16 +83,17 @@ window.startQuiz = async () => {
   for (let i = 0; i < quiz.length; i++) {
     const q = quiz[i];
     const answer = prompt(
-      `ข้อ ${i + 1}/${quiz.length}:\n${q.question}\n\n${q.choices
+      `ข้อ ${i + 1}/${quiz.length}:
+${q.question}
+
+${q.choices
         .map((c, idx) => `${idx + 1}. ${c}`)
         .join("\n")}`
     );
     if (parseInt(answer) - 1 === q.answer) score++;
   }
 
-  await supabase.from("quiz_results").insert([
-    { username: user.username, score }
-  ]);
+  await supabase.from("quiz_results").insert([{ username: user.username, score }]);
 
   if (score >= 9) {
     alert("🎉 ผ่านการทดสอบแล้ว!");
@@ -103,7 +104,6 @@ window.startQuiz = async () => {
   }
 };
 
-// โหลดหน้า: วิดีโอ + เช็คสถานะการสอบ
 loadVideo();
 checkQuizStatus();
 console.log("User:", user);
