@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>หน้าเรียนรู้</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="logout"><button onclick="logout()">🚪 ออกจากระบบ</button></div>
+    <h2 id="welcome"></h2>
+    <h3>🎥 วิดีโอเรียนรู้ด้วยตัวเองประจำเดือน</h3>
+    <div id="videoArea">กำลังโหลดวิดีโอ...</div>
+    <hr />
+    <div>
+      <button onclick="startQuiz()">📝 ทำแบบทดสอบ</button>
+      <p id="quizStatus">สถานะการสอบ: -</p>
+    </div>
+  </div>
+  <script src="dashboard.js" type="module"></script>
+</body>
+</html>
