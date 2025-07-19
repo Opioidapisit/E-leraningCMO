@@ -13,7 +13,14 @@ function logout() {
 }
 
 async function loadVideo() {
-  const { data, error } = await supabase.from("video_links").select("*").order("id", { ascending: false }).limit(1);
+  const { data, error } = await supabase
+    .from("video_links")
+    .select("*")
+    .order("id", { ascending: false })
+    .limit(1);
+
+  console.log("video_links data:", data, "error:", error);
+
   if (data && data.length > 0) {
     const link = data[0].link.replace("/view?usp=share_link", "/preview");
     document.getElementById("videoArea").innerHTML = `<iframe src="${link}" width="100%" height="300" allow="autoplay"></iframe>`;
@@ -21,14 +28,10 @@ async function loadVideo() {
     document.getElementById("videoArea").innerText = "ยังไม่มีคลิปวิดีโอ";
   }
 }
+
+// เรียกใช้เมื่อโหลดหน้า
 loadVideo();
 console.log("User:", user);
-
-async function loadVideo() {
-  const { data, error } = await supabase.from("video_links").select("*").order("id", { ascending: false }).limit(1);
-  console.log("video_links data:", data, "error:", error);
-  ...
-}
 
 window.logout = logout;
 
