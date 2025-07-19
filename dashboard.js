@@ -24,20 +24,13 @@ const loadVideo = async () => {
 
   console.log("video_links data:", data, "error:", error);
 
+  const videoArea = document.getElementById("videoArea");
+
   if (data && data.length > 0) {
-    const rawLink = data[0].link;
-    let embedLink = rawLink;
-
-    if (rawLink.includes("/view")) {
-      embedLink = rawLink.replace("/view", "/preview");
-    } else if (rawLink.includes("file/d/")) {
-      const fileId = rawLink.split("/d/")[1].split("/")[0];
-      embedLink = `https://drive.google.com/file/d/${fileId}/preview`;
-    }
-
-    document.getElementById("videoArea").innerHTML = `<iframe src="${embedLink}" width="100%" height="300" allow="autoplay"></iframe>`;
+    const link = data[0].link;
+    videoArea.innerHTML = `<a href="${link}" target="_blank" style="font-size: 18px;">🎥 คลิกเพื่อดูวิดีโอ</a>`;
   } else {
-    document.getElementById("videoArea").innerText = "ยังไม่มีคลิปวิดีโอ";
+    videoArea.innerText = "ยังไม่มีคลิปวิดีโอ";
   }
 };
 
