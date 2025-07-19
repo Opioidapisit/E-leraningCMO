@@ -22,6 +22,13 @@ async function loadVideo() {
   }
 }
 loadVideo();
+console.log("User:", user);
+
+async function loadVideo() {
+  const { data, error } = await supabase.from("video_links").select("*").order("id", { ascending: false }).limit(1);
+  console.log("video_links data:", data, "error:", error);
+  ...
+}
 
 window.logout = logout;
 
