@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบเรียนรู้ด้วยตัวเอง คลินิกยา ม.ออ ตรัง</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Kanit', sans-serif; }
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
+      color: #333;
+    }
+    header {
+      background-color: #2196f3;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+      position: relative;
+    }
+    .logout {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: #fff;
+      color: #2196f3;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+    .login-box {
+      background: #ffffffee;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-top: 50px;
+      text-align: center;
+    }
+    .login-box h2 {
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="password"] {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .dashboard {
+      background: white;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .video-box, .quiz-box, .user-box, .summary-box {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #2196f3;
+      border-radius: 15px;
+    }
+    h3 { color: #1976d2; }
+    .emoji { font-size: 1.3rem; }
+    textarea {
+      width: 100%;
+      height: 60px;
+      margin: 10px 0;
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    .link-preview {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    ระบบเรียนรู้ด้วยตัวเอง คลินิกยา ม.ออ จังหวัดตรัง 📘💊
+    <button class="logout" onclick="logout()">🚪 ออกจากระบบ</button>
+  </header>
+  <div class="container">
+    <div class="login-box" id="loginBox">
+      <h2>👩‍⚕️ เข้าสู่ระบบ</h2>
+      <input type="text" id="username" placeholder="ชื่อผู้ใช้"><br>
+      <input type="password" id="password" placeholder="รหัสผ่าน"><br>
+      <button onclick="login()">🔐 เข้าสู่ระบบ</button>
+    </div>
+
+    <div class="dashboard" id="dashboard" style="display:none">
+      <h2 id="welcome">ยินดีต้อนรับ</h2>
+      <h3>วิดีโอเรียนรู้ด้วยตัวเองประจำเดือน พร้อมแล้ว 🎥 เริ่มเรียนรู้กันได้เลย</h3>
+
+      <div class="summary-box" id="summaryBox">
+        <h3>📊 สรุปผลการเรียน</h3>
+        <div id="summaryContent"></div>
+      </div>
+
+      <div id="adminPanel" style="display:none">
+        <div class="video-box">
+          <h3>🎬 เพิ่มลิงก์วิดีโอจาก Google Drive</h3>
+          <textarea id="videoLinks" placeholder="แปะลิงก์วิดีโอแยกบรรทัด"></textarea>
+          <button onclick="saveLinks('video')">💾 บันทึกวิดีโอ</button>
+          <div class="link-preview" id="videoPreview"></div>
+        </div>
+        <div class="quiz-box">
+          <h3>📝 เพิ่มลิงก์แบบทดสอบจาก Google Form</h3>
+          <textarea id="quizLinks" placeholder="แปะลิงก์แบบทดสอบแยกบรรทัด"></textarea>
+          <button onclick="saveLinks('quiz')">💾 บันทึกแบบทดสอบ</button>
+          <div class="link-preview" id="quizPreview"></div>
+        </div>
+        <div class="user-box">
+          <h3>👥 จัดการผู้ใช้งาน (กำลังพัฒนา...)</h3>
+        </div>
+      </div>
+
+      <div id="userPanel" style="display:none">
+        <div class="video-box">
+          <h3>📺 คลิปวิดีโอประจำเดือน</h3>
+          <div class="link-preview" id="videoUserPreview"></div>
+        </div>
+        <div class="quiz-box">
+          <h3>🧪 แบบทดสอบ</h3>
+          <div class="link-preview" id="quizUserPreview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const users = {
+      admin: { name: "Admin", password: "admin", role: "admin" },
+      Ice: { name: "ไอซ์ สาขานาเมืองเพชร", password: "001-1", role: "user" },
+      Bowy: { name: "โบวี่ สาขานาเมืองเพชร", password: "001-2", role: "user" },
+      Jha: { name: "จ๋า สาขานาที่วัง", password: "002-1", role: "user" },
+      Jaew: { name: "แจ๋ว สาขานาที่วัง", password: "002-2", role: "user" },
+      Zeegame: { name: "ซีเกมส์ สาขาคลองเต็ง", password: "003-1", role: "user" },
+      Benz: { name: "เบนช์ สาขาคลองเต็ง", password: "003-2", role: "user" },
+      Mint: { name: "มินท์ สาขานาโยง", password: "004-1", role: "user" },
+      Pair: { name: "แพร สาขานาโยง", password: "004-2", role: "user" },
+      Maprang: { name: "มะปราง สาขานาโยง", password: "004-3", role: "user" },
+      Maple: { name: "เมเปิ้ล สาขาท่ากลาง", password: "005-1", role: "user" },
+      Toey: { name: "เตย สาขาท่ากลาง", password: "005-2", role: "user" },
+      Oil: { name: "ออย สาขาท่ากลาง", password: "005-3", role: "user" },
+      Nuch: { name: "นุช สาขารัษฎา", password: "006-1", role: "user" },
+      Few: { name: "ฟิว สาขารัษฎา", password: "006-2", role: "user" },
+      Aom: { name: "อ้อม สาขารักษ์จันทน์", password: "007-1", role: "user" },
+      Pond: { name: "พร สาขาหน้าสภาราชินี", password: "008-1", role: "user" },
+      Bow: { name: "โบว์ สาขาหน้าสภาราชินี", password: "008-2", role: "user" },
+      Cream: { name: "ครีม สาขาบิ๊กซี", password: "009-1", role: "user" },
+    };
+
+    let currentUser = null;
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (users[username] && users[username].password === password) {
+        currentUser = users[username];
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("welcome").innerText = `ยินดีต้อนรับ ${currentUser.name}`;
+
+        if (currentUser.role === "admin") {
+          document.getElementById("adminPanel").style.display = "block";
+          updatePreview('video');
+          updatePreview('quiz');
+        } else {
+          document.getElementById("userPanel").style.display = "block";
+          updateUserPreview('video');
+          updateUserPreview('quiz');
+        }
+      } else {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      }
+    }
+
+    function saveLinks(type) {
+      const links = document.getElementById(type + 'Links').value.trim().split('\n');
+      localStorage.setItem(type + 'Links', JSON.stringify(links));
+      updatePreview(type);
+    }
+
+    function updatePreview(type) {
+      const links = JSON.parse(localStorage.getItem(type + 'Links') || '[]');
+      const container = document.getElementById(type + 'Preview');
+      container.innerHTML = links.map(link => `<a href="${link}" target="_blank">🔗 ${link}</a><br>`).join('');
+    }
+
+    function updateUserPreview(type) {
+      const links = JSON.parse(localStorage.getItem(type + 'Links') || '[]');
+      const container = document.getElementById(type + 'UserPreview');
+      container.innerHTML = links.map(link => `<a href="${link}" target="_blank">▶️ ${link}</a><br>`).join('');
+    }
+
+    function logout() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
