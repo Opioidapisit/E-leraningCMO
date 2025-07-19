@@ -1,142 +1,185 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ระบบเรียนรู้ด้วยตัวเอง คลินิกยา ม.ออ ตรัง</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet" />
   <style>
     * { font-family: 'Kanit', sans-serif; }
-    body { background: #e3f2fd; margin: 0; padding: 0; }
-    .container { max-width: 800px; margin: auto; padding: 20px; }
-    h1, h2, h3 { color: #1976d2; }
-    button { padding: 10px 20px; margin-top: 10px; background: #2196f3; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    .question-box { margin: 20px 0; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .choice { display: block; margin: 8px 0; }
-    .hidden { display: none; }
-    #resultBox { font-size: 1.2em; padding: 15px; margin-top: 20px; }
+    body { margin: 0; background: linear-gradient(to bottom right, #e3f2fd, #ffffff); color: #333; }
+    header {
+      background-color: #2196f3; color: white; padding: 20px; text-align: center;
+      font-size: 1.5rem; position: relative;
+    }
+    .logout {
+      position: absolute; right: 20px; top: 20px; background: #fff;
+      color: #2196f3; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer;
+    }
+    .container { max-width: 1000px; margin: auto; padding: 20px; }
+    .login-box, .dashboard { background: #ffffffee; padding: 30px; border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 50px; text-align: center; }
+    input[type="text"], input[type="password"] {
+      padding: 10px; width: 80%; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px; background: #2196f3; color: white; border: none;
+      border-radius: 10px; cursor: pointer; font-size: 1rem;
+    }
+    .video-box, .quiz-box, .user-box, .summary-box {
+      margin-top: 20px; padding: 15px; border: 1px solid #2196f3; border-radius: 15px;
+    }
+    h3 { color: #1976d2; }
+    textarea { width: 100%; height: 60px; margin: 10px 0; border-radius: 10px; padding: 10px; border: 1px solid #ccc; }
+    .link-preview { margin-top: 10px; }
   </style>
 </head>
 <body>
+  <header>
+    ระบบเรียนรู้ด้วยตัวเอง คลินิกยา ม.ออ จังหวัดตรัง 📘💊
+    <button class="logout" onclick="logout()">🚪 ออกจากระบบ</button>
+  </header>
   <div class="container">
-    <h1>ระบบเรียนรู้ด้วยตัวเอง คลินิกยา ม.ออ จังหวัดตรัง 📘💊</h1>
-    <div id="loginBox">
+    <div class="login-box" id="loginBox">
       <h2>👩‍⚕️ เข้าสู่ระบบ</h2>
-      <input type="text" id="username" placeholder="ชื่อผู้ใช้"><br><br>
-      <input type="password" id="password" placeholder="รหัสผ่าน"><br><br>
+      <input type="text" id="username" placeholder="ชื่อผู้ใช้" /><br />
+      <input type="password" id="password" placeholder="รหัสผ่าน" /><br />
       <button onclick="login()">🔐 เข้าสู่ระบบ</button>
     </div>
 
-    <div id="dashboard" class="hidden">
-      <h2 id="welcomeText"></h2>
-      <div id="quizStatus"></div>
-      <button id="startQuizBtn" onclick="startQuiz()">เริ่มทำแบบทดสอบ</button>
-      <div id="quizBox" class="question-box hidden">
-        <div id="questionText"></div>
-        <div id="choicesContainer"></div>
-        <button onclick="nextQuestion()">ข้อต่อไป</button>
+    <div class="dashboard" id="dashboard" style="display:none">
+      <h2 id="welcome">ยินดีต้อนรับ</h2>
+      <h3>วิดีโอเรียนรู้ด้วยตัวเองประจำเดือน พร้อมแล้ว 🎥 เริ่มเรียนรู้กันได้เลย</h3>
+
+      <div class="summary-box" id="summaryBox">
+        <h3>📊 สรุปผลการเรียน</h3>
+        <div id="summaryContent"></div>
       </div>
-      <div id="resultBox" class="hidden"></div>
+
+      <div id="adminPanel" style="display:none">
+        <div class="video-box">
+          <h3>🎬 เพิ่มลิงก์วิดีโอจาก Google Drive</h3>
+          <textarea id="videoLinks" placeholder="แปะลิงก์วิดีโอแยกบรรทัด"></textarea>
+          <button onclick="saveLinks('video')">💾 บันทึกวิดีโอ</button>
+          <div class="link-preview" id="videoPreview"></div>
+        </div>
+      </div>
+
+      <div id="userPanel" style="display:none">
+        <div class="video-box">
+          <h3>📺 คลิปวิดีโอประจำเดือน</h3>
+          <div class="link-preview" id="videoUserPreview"></div>
+        </div>
+        <div class="quiz-box">
+          <h3>🧪 แบบทดสอบ</h3>
+          <div class="link-preview" id="quizUserPreview"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    const supabaseUrl = 'https://jrtpzuolfukhjxaylfyg.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHB6dW9sZnVraGp4YXlsZnlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTQwODEsImV4cCI6MjA2NTQzMDA4MX0.2s-epXqs7f3jCzJolNqHPDXuB1B77iNIvN-26TVswLA';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const users = {
+  admin: { name: "Admin", password: "admin", role: "admin" },
+  Ice: { name: "ไอซ์", password: "001-1", role: "user" },
+};
 
-    const users = {
-      admin: { name: "Admin", password: "admin", role: "admin" },
-      Ice: { name: "ไอซ์ สาขานาเมืองเพชร", password: "001-1", role: "user" },
-      // เพิ่ม user อื่นได้ตามเดิม...
-    };
+const supabase = supabase.createClient(
+  'https://jrtpzuolfukhjxaylfyg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpydHB6dW9sZnVraGp4YXlsZnlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTQwODEsImV4cCI6MjA2NTQzMDA4MX0.2s-epXqs7f3jCzJolNqHPDXuB1B77iNIvN-26TVswLA'
+);
+let currentUser = null;
+let username = "";
 
-    let currentUser = null;
-    let quiz = [];
-    let currentIndex = 0;
-    let score = 0;
-
-    async function login() {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
-      if (users[username] && users[username].password === password) {
-        currentUser = { id: username, ...users[username] };
-        document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("welcomeText").innerText = `ยินดีต้อนรับ ${currentUser.name}`;
-        checkResult();
-      } else {
-        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-      }
+function login() {
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+  if (users[user] && users[user].password === pass) {
+    currentUser = users[user];
+    username = user;
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcome").innerText = `ยินดีต้อนรับ ${currentUser.name}`;
+    if (currentUser.role === "admin") {
+      document.getElementById("adminPanel").style.display = "block";
+      updatePreview("video");
+    } else {
+      document.getElementById("userPanel").style.display = "block";
+      updateUserPreview("video");
+      loadQuiz();
     }
+  } else {
+    alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+  }
+}
 
-    async function checkResult() {
-      const { data } = await supabase.from('quiz_results').select('*').eq('user_id', currentUser.id).single();
-      if (data) {
-        document.getElementById("quizStatus").innerText = `สถานะ: ${data.status} (${data.score} คะแนน)`;
-        if (data.status === 'ผ่านการทดสอบ') {
-          document.getElementById("startQuizBtn").disabled = true;
-        }
-      } else {
-        document.getElementById("quizStatus").innerText = 'สถานะ: ยังไม่ทำแบบทดสอบ';
-      }
+function saveLinks(type) {
+  const links = document.getElementById(type + 'Links').value.trim().split('\n');
+  localStorage.setItem(type + 'Links', JSON.stringify(links));
+  updatePreview(type);
+}
+
+function extractDriveId(link) {
+  const match = link.match(/[-\w]{25,}/);
+  return match ? match[0] : '';
+}
+
+function updatePreview(type) {
+  const links = JSON.parse(localStorage.getItem(type + 'Links') || '[]');
+  const container = document.getElementById(type + 'Preview');
+  container.innerHTML = links.map(link => `<a href="\${link}" target="_blank">🔗 \${link}</a><br>`).join('');
+}
+
+function updateUserPreview(type) {
+  const links = JSON.parse(localStorage.getItem(type + 'Links') || '[]');
+  const container = document.getElementById(type + 'UserPreview');
+  container.innerHTML = links.map(link => {
+    const id = extractDriveId(link);
+    return \`<iframe width="100%" height="315" src="https://drive.google.com/file/d/\${id}/preview" frameborder="0" allowfullscreen></iframe><br>\`;
+  }).join('');
+}
+
+async function loadQuiz() {
+  const { data: quiz } = await supabase.from("quiz").select("*").order("id");
+  const { data: results } = await supabase.from("quiz_results")
+    .select("*").eq("username", username).order("submitted_at", { ascending: false }).limit(1);
+
+  const summary = document.getElementById("summaryContent");
+  const box = document.getElementById("quizUserPreview");
+  box.innerHTML = "";
+  if (results.length && results[0].score >= 9) {
+    summary.innerText = "✅ ผ่านการทดสอบแล้ว";
+    box.innerHTML = "<p>คุณทำแบบทดสอบผ่านแล้ว 🎉</p>";
+    return;
+  }
+  if (results.length && results[0].score < 9) {
+    summary.innerText = "❌ ไม่ผ่านการทดสอบ";
+  } else {
+    summary.innerText = "🟡 ยังไม่ทำแบบทดสอบ";
+  }
+
+  let i = 0, score = 0;
+  function render() {
+    const q = quiz[i];
+    box.innerHTML = \`<h4>ข้อ \${i+1}/\${quiz.length}</h4><p>\${q.question}</p>\` +
+      q.choices.map((c, j) => \`<button onclick="submitAnswer(\${j})">\${c}</button><br>\`).join('');
+  }
+  window.submitAnswer = async function(choice) {
+    if (choice === quiz[i].answer) score++;
+    i++;
+    if (i < quiz.length) render();
+    else {
+      const pass = score >= 9;
+      await supabase.from("quiz_results").insert([{ username, score, passed: pass, submitted_at: new Date().toISOString() }]);
+      alert(pass ? "✅ ผ่านการทดสอบแล้ว" : "❌ ไม่ผ่านการทดสอบ กรุณาทำใหม่อีกครั้ง");
+      loadQuiz();
     }
+  };
+  render();
+}
 
-    async function startQuiz() {
-      const { data, error } = await supabase.from('quiz').select('*').order('id');
-      quiz = data;
-      currentIndex = 0;
-      score = 0;
-      document.getElementById("quizBox").classList.remove("hidden");
-      document.getElementById("startQuizBtn").classList.add("hidden");
-      showQuestion();
-    }
-
-    function showQuestion() {
-      const q = quiz[currentIndex];
-      document.getElementById("questionText").innerText = `ข้อ ${currentIndex + 1}: ${q.question}`;
-      const choices = [q.choice1, q.choice2, q.choice3, q.choice4];
-      const container = document.getElementById("choicesContainer");
-      container.innerHTML = "";
-      choices.forEach((choice, idx) => {
-        const btn = document.createElement("button");
-        btn.innerText = choice;
-        btn.className = "choice";
-        btn.onclick = () => {
-          if ((idx + 1) === q.correct) score++;
-          nextQuestion();
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function nextQuestion() {
-      currentIndex++;
-      if (currentIndex < quiz.length) {
-        showQuestion();
-      } else {
-        finishQuiz();
-      }
-    }
-
-    async function finishQuiz() {
-      document.getElementById("quizBox").classList.add("hidden");
-      document.getElementById("resultBox").classList.remove("hidden");
-      const status = score >= 9 ? "ผ่านการทดสอบ" : "ไม่ผ่านการทดสอบ";
-      document.getElementById("resultBox").innerText = `คุณได้ ${score} คะแนน - ${status}`;
-      alert(status === "ผ่านการทดสอบ" ? "✅ ผ่านการทดสอบแล้ว!" : "❌ ไม่ผ่านการทดสอบ กรุณาทำใหม่อีกครั้ง");
-
-      await supabase.from('quiz_results').upsert([{ user_id: currentUser.id, score, status }]);
-      checkResult();
-
-      if (status === "ผ่านการทดสอบ") {
-        document.getElementById("startQuizBtn").disabled = true;
-      } else {
-        document.getElementById("startQuizBtn").classList.remove("hidden");
-      }
-    }
-  </script>
+function logout() { location.reload(); }
+</script>
 </body>
 </html>
