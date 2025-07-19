@@ -55,7 +55,6 @@ ${choices.map((c, j) => (j+1)+". "+c).join("\n")}`);
   alert("คุณได้คะแนน: " + score + "/" + data.values.length);
   document.getElementById("quizStatus").innerText = score >= 9 ? "ผ่าน" : "ไม่ผ่าน";
 }
-
+window.startQuiz = startQuiz;
 loadVideo();
 
-window.startQuiz = startQuiz;
