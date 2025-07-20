@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบ | คลินิคยา มอ ออ จังหวัดตรัง</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .quiz-container {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .quiz-question {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .quiz-options {
+            margin-left: 1.5rem;
+        }
+        
+        .quiz-option {
+            margin: 0.5rem 0;
+        }
+        
+        .quiz-submit {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .quiz-result {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .quiz-result h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .passed {
+            color: var(--success-color);
+        }
+        
+        .failed {
+            color: var(--error-color);
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1>แบบทดสอบการเรียนรู้</h1>
+            <div class="user-controls">
+                <button id="back-btn" class="btn-secondary">กลับไปหน้าหลัก</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="quiz-page" class="quiz-container">
+            <h2>แบบทดสอบประจำเดือน</h2>
+            <p>กรุณาเลือกคำตอบที่ถูกต้องที่สุด (มีทั้งหมด 10 ข้อ)</p>
+            
+            <div id="quiz-questions">
+                <!-- ข้อสอบจะถูกโหลดจาก JavaScript -->
+            </div>
+            
+            <div class="quiz-submit">
+                <button id="submit-quiz" class="btn-primary">ส่งคำตอบ</button>
+            </div>
+        </div>
+        
+        <div id="result-page" class="quiz-container" style="display: none;">
+            <div class="quiz-result">
+                <h3 id="result-title">ผลการทดสอบ</h3>
+                <p id="result-score">คุณได้คะแนน: <span id="score">0</span>/10</p>
+                <p id="result-message"></p>
+                <button id="result-btn" class="btn-primary">ตกลง</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="scripts/quiz.js"></script>
+</body>
+</html>

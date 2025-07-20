@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการ | คลินิคยา มอ ออ จังหวัดตรัง</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1>ระบบเรียนรู้ด้วยตัวเอง</h1>
+            <div class="user-controls">
+                <span id="welcome-user">ยินดีต้อนรับ, Admin</span>
+                <button id="logout-btn" class="btn-secondary">ออกจากระบบ</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-dashboard">
+        <h2>ยินดีต้อนรับ Admin</h2>
+        <h3>วิดีโอเรียนรู้ด้วยตัวเองประจำเดือน พร้อมแล้ว เริ่มเรียนรู้กันได้เลย</h3>
+        
+        <div class="admin-sections">
+            <section class="video-management">
+                <h4>📹 จัดการคลิปวิดีโอ</h4>
+                <div class="video-links">
+                    <!-- Dynamic video links will be inserted here -->
+                </div>
+                <div class="video-controls">
+                    <input type="text" id="new-video-link" placeholder="วางลิงก์ Google Drive ที่นี่">
+                    <button id="add-video-btn" class="btn-primary">➕ เพิ่มคลิปวิดีโอ</button>
+                </div>
+            </section>
+            
+            <section class="quiz-management">
+                <h4>📝 จัดการแบบทดสอบ</h4>
+                <div class="quiz-controls">
+                    <button id="edit-quiz-btn" class="btn-primary">✏️ แก้ไขแบบทดสอบ</button>
+                    <button id="view-results-btn" class="btn-secondary">📊 ดูผลการทดสอบ</button>
+                </div>
+            </section>
+            
+            <section class="user-management">
+                <h4>👥 จัดการผู้ใช้</h4>
+                <div class="user-controls">
+                    <button id="add-user-btn" class="btn-primary">➕ เพิ่มผู้ใช้ใหม่</button>
+                    <button id="reset-users-btn" class="btn-warning">🔄 รีเซ็ตผลการสอบ</button>
+                </div>
+                <div class="users-list">
+                    <!-- Dynamic users list will be inserted here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="scripts/admin.js"></script>
+</body>
+</html>
