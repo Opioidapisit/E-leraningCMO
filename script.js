@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Google Sheet Configuration for Scores ---
     const SCORES_SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
-    const SCORES_GID = '1728898250'; // GID for the sheet containing scores
+    const SCORES_GID = '441233492'; // GID for the sheet containing scores
     const SCORES_GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SCORES_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SCORES_GID}`;
 
     // --- Utility Functions ---
@@ -221,34 +221,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const csvText = await response.text();
-            console.log('Raw CSV Text (Scores):', csvText);
+            console.log('Raw CSV Text (คะแนน):', csvText);
 
             const rows = parseCSV(csvText);
-            console.log('Parsed Rows (Scores):', rows);
+            console.log('Parsed Rows (คะแนน):', rows);
 
             const headers = rows[0].map(header => header.trim());
             const dataRows = rows.slice(1);
-            console.log('Headers (Scores):', headers);
+            console.log('Headers (คะแนน):', headers);
 
             const userColIndex = headers.indexOf('User');
-            const scoreColIndex = headers.indexOf('Score');
+            const scoreColIndex = headers.indexOf('คะแนน');
             const statusColIndex = headers.indexOf('Status');
-            console.log('Column Indices - User:', userColIndex, 'Score:', scoreColIndex, 'Status:', statusColIndex);
+            console.log('Column Indices - User:', userColIndex, 'คะแนน:', scoreColIndex, 'Status:', statusColIndex);
 
             if (userColIndex === -1 || scoreColIndex === -1 || statusColIndex === -1) {
-                throw new Error("ไม่พบชื่อคอลัมน์ที่จำเป็น ('User', 'Score', 'Status') ใน Google Sheet ผลคะแนนของคุณ กรุณาตรวจสอบว่าสะกดถูกต้องและ **ไม่มีช่องว่างด้านหน้าหรือด้านหลังชื่อคอลัมน์** ในแถวแรกของชีท");
+                throw new Error("ไม่พบชื่อคอลัมน์ที่จำเป็น ('User', 'คะแนน', 'Status') ใน Google Sheet ผลคะแนนของคุณ กรุณาตรวจสอบว่าสะกดถูกต้องและ **ไม่มีช่องว่างด้านหน้าหรือด้านหลังชื่อคอลัมน์** ในแถวแรกของชีท");
             }
 
             let found = false;
             for (const row of dataRows) {
                 const cellUserName = row[userColIndex] ? row[userColIndex].trim() : '';
-                console.log('Checking row (Scores):', cellUserName, 'against', userNameForLookup);
+                console.log('Checking row (คะแนน):', cellUserName, 'against', userNameForLookup);
                 if (cellUserName === userNameForLookup) {
                     displayScore.textContent = row[scoreColIndex] || 'ไม่มีข้อมูล';
                     displayStatus.textContent = row[statusColIndex] || 'ไม่มีข้อมูล';
                     scoreDisplay.classList.remove('hidden');
                     found = true;
-                    console.log('User found! Score:', row[scoreColIndex], 'Status:', row[statusColIndex]);
+                    console.log('User found! คะแนน:', row[scoreColIndex], 'Status:', row[statusColIndex]);
                     break;
                 }
             }
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.error('Error fetching or parsing spreadsheet data (Scores):', error);
+            console.error('Error fetching or parsing spreadsheet data (คะแนน):', error);
             scoreError.textContent = error.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลคะแนน กรุณาลองอีกครั้งในภายหลัง';
         }
     });
