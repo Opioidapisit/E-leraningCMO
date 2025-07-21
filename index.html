@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิกยา ม.อ. จังหวัดตรัง</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container" id="login-page">
+        <h1>ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิกยา ม.อ. จังหวัดตรัง 🎓</h1>
+        <form id="login-form">
+            <div class="input-group">
+                <label for="username">ชื่อผู้ใช้งาน:</label>
+                <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้งาน" required>
+            </div>
+            <div class="input-group">
+                <label for="password">รหัสผ่าน:</label>
+                <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
+            </div>
+            <button type="submit">เข้าสู่ระบบ ✨</button>
+            <div id="login-error" class="error-message"></div>
+        </form>
+    </div>
+
+    <div class="container hidden" id="user-page">
+        <h1 id="user-page-title">ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิกยา ม.อ. จังหวัดตรัง 📚</h1>
+        <h2 id="welcome-message"></h2>
+
+        <div class="section">
+            <h3>คลิปวิดีโอประจำเดือนนี้ 🎬</h3>
+            <div id="video-list">
+                </div>
+        </div>
+
+        <div class="section">
+            <h3>แบบทดสอบประจำเดือนนี้ 📝</h3>
+            <button id="take-quiz-button" class="action-button">กรุณาคลิกเพื่อทำแบบทดสอบ</button>
+        </div>
+
+        <div class="section">
+            <h3>ตรวจสอบคะแนนประจำเดือนนี้ 📊</h3>
+            <button id="check-score-button" class="action-button">ตรวจสอบคะแนน 💯</button>
+            <div id="score-display" class="hidden">
+                <p><strong>ชื่อผู้ใช้งาน:</strong> <span id="display-user-name"></span></p>
+                <p><strong>คะแนน:</strong> <span id="display-score"></span></p>
+                <p><strong>สถานะ:</strong> <span id="display-status"></span></p>
+            </div>
+            <div id="score-error" class="error-message"></div>
+        </div>
+
+        <button id="logout-button-user" class="logout-button">ออกจากระบบ 🚪</button>
+    </div>
+
+    <div class="container hidden" id="admin-page">
+        <h1 id="admin-page-title">ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิกยา ม.อ. จังหวัดตรัง ⚙️</h1>
+        <h2 id="admin-welcome-message"></h2>
+
+        <div class="section">
+            <h3>จัดการคลิปวิดีโอประจำเดือน 🎥</h3>
+            <div class="input-group">
+                <input type="text" id="video-link-input" placeholder="เพิ่มลิงก์วิดีโอ (เช่น YouTube)">
+                <button id="add-video-link-button">เพิ่มลิงก์</button>
+            </div>
+            <ul id="admin-video-list">
+                </ul>
+        </div>
+
+        <div class="section">
+            <h3>จัดการแบบทดสอบประจำเดือน ✍️</h3>
+            <div class="input-group">
+                <input type="text" id="quiz-link-input" placeholder="เพิ่มลิงก์ Google Form">
+                <button id="add-quiz-link-button">เพิ่มลิงก์</button>
+            </div>
+            <ul id="admin-quiz-list">
+                </ul>
+        </div>
+
+        <div class="section">
+            <h3>ดูผลสอบทั้งหมด 📋</h3>
+            <button id="view-all-results-button" class="action-button">คลิกเพื่อดูผลสอบทั้งหมด</button>
+        </div>
+
+        <button id="logout-button-admin" class="logout-button">ออกจากระบบ 🚪</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
