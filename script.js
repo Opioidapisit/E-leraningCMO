@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Google Sheets API configuration - Replace with your own API Key and Sheet ID if you go beyond simple fetch
         const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
-        const GID = '441233492'; // The specific sheet tab you want to read from
+        const GID = '1728898250'; // The specific sheet tab you want to read from
         const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
         console.log('Fetching from URL:', GOOGLE_SHEET_URL); // <-- บรรทัดนี้
 
