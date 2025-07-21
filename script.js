@@ -207,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const userNameForLookup = users[loggedInUser].name; // Get the full name for lookup
+        console.log('User Name for Lookup:', userNameForLookup); // <-- บรรทัดนี้สำคัญมาก!
 
         // Google Sheets API configuration - Replace with your own API Key and Sheet ID if you go beyond simple fetch
         const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
