@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Parsed Rows:', rows); // <-- บรรทัดนี้
 
             // Assuming headers are in the first row
-            const headers = rows[0];
+            const headers = rows[0].map(header => header.trim());
             const dataRows = rows.slice(1);
             console.log('Headers:', headers); // <-- บรรทัดนี้
 
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Column Indices - User:', userColIndex, 'Score:', scoreColIndex, 'Status:', statusColIndex); // <-- บรรทัดนี้
 
             if (userColIndex === -1 || scoreColIndex === -1 || statusColIndex === -1) {
-                throw new Error("Could not find required columns (User, Score, Status) in the spreadsheet.");
+                throw new Error("ไม่พบชื่อคอลัมน์ที่จำเป็น ('User', 'Score', 'Status') ใน Google Sheet ของคุณ กรุณาตรวจสอบว่าสะกดถูกต้องและ **ไม่มีช่องว่างด้านหน้าหรือด้านหลังชื่อคอลัมน์** ในแถวแรกของชีท");
             }
 
             let found = false;
