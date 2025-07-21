@@ -1,0 +1,228 @@
+body {
+    font-family: 'Kanit', sans-serif;
+    background-color: #e0f2f7; /* Light blue background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    text-align: center;
+    animation: fadeIn 0.8s ease-out;
+    margin: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    color: #1976d2; /* Darker blue */
+    margin-bottom: 30px;
+    font-size: 2.2em;
+    font-weight: 700;
+}
+
+h2 {
+    color: #2196f3; /* Medium blue */
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+h3 {
+    color: #42a5f5; /* Lighter blue */
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 2px solid #e0f2f7;
+    padding-bottom: 8px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.input-group input[type="text"],
+.input-group input[type="password"] {
+    width: calc(100% - 20px);
+    padding: 12px 10px;
+    border: 1px solid #bbdefb; /* Light blue border */
+    border-radius: 8px;
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="password"]:focus {
+    border-color: #2196f3; /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+}
+
+button {
+    background-color: #2196f3; /* Medium blue */
+    color: white;
+    padding: 14px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #1976d2; /* Darker blue on hover */
+    transform: translateY(-2px);
+}
+
+.action-button {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+    background-color: #42a5f5; /* Lighter blue */
+}
+
+.action-button:hover {
+    background-color: #2196f3;
+}
+
+.logout-button {
+    background-color: #ef5350; /* Red for logout */
+    margin-top: 30px;
+}
+
+.logout-button:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+}
+
+.error-message {
+    color: #d32f2f; /* Red for errors */
+    margin-top: 15px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.section {
+    background-color: #f7fbff; /* Very light blue for sections */
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #e3f2fd; /* Lighter blue border */
+    text-align: left;
+}
+
+.video-item, .quiz-item {
+    background-color: #e0f7fa; /* Even lighter blue */
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.05em;
+    word-break: break-all; /* Ensures long links wrap */
+}
+
+.video-item a, .quiz-item a {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.video-item a:hover, .quiz-item a:hover {
+    text-decoration: underline;
+}
+
+.video-item .delete-button, .quiz-item .delete-button {
+    background-color: #ffcdd2; /* Light red */
+    color: #c62828; /* Dark red text */
+    padding: 6px 10px;
+    font-size: 0.85em;
+    border-radius: 6px;
+    margin-left: 15px;
+    flex-shrink: 0; /* Prevents button from shrinking */
+}
+
+.video-item .delete-button:hover, .quiz-item .delete-button:hover {
+    background-color: #ef9a9a; /* Darker light red */
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#score-display {
+    background-color: #e3f2fd;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #bbdefb;
+    margin-top: 20px;
+    text-align: left;
+}
+
+#score-display p {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+#score-display strong {
+    color: #1976d2;
+}
+
+/* For smaller screens */
+@media (max-width: 768px) {
+    .container {
+        padding: 25px;
+        margin: 15px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    h3 {
+        font-size: 1.3em;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+
+    .input-group input {
+        padding: 10px;
+    }
+}
