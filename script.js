@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
         const GID = '441233492'; // The specific sheet tab you want to read from
         const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+        console.log('Fetching from URL:', GOOGLE_SHEET_URL); // <-- บรรทัดนี้
 
         try {
             const response = await fetch(GOOGLE_SHEET_URL);
@@ -220,18 +221,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const csvText = await response.text();
+            console.log('Raw CSV Text:', csvText); // <-- บรรทัดนี้
 
             // Simple CSV parsing (consider a more robust library for complex CSVs)
             const rows = csvText.trim().split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
+            console.log('Parsed Rows:', rows); // <-- บรรทัดนี้
 
             // Assuming headers are in the first row
             const headers = rows[0];
             const dataRows = rows.slice(1);
+            console.log('Headers:', headers); // <-- บรรทัดนี้
 
             // Find column indices
             const userColIndex = headers.indexOf('User'); // Column C, 0-indexed is 2, but CSV might reorder
             const scoreColIndex = headers.indexOf('Score'); // Column B, 0-indexed is 1
             const statusColIndex = headers.indexOf('Status'); // Column N, 0-indexed is 13
+            console.log('Column Indices - User:', userColIndex, 'Score:', scoreColIndex, 'Status:', statusColIndex); // <-- บรรทัดนี้
 
             if (userColIndex === -1 || scoreColIndex === -1 || statusColIndex === -1) {
                 throw new Error("Could not find required columns (User, Score, Status) in the spreadsheet.");
@@ -239,11 +244,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let found = false;
             for (const row of dataRows) {
+                console.log('Checking row:', row[userColIndex], 'against', userNameForLookup); // <-- บรรทัดนี้
                 if (row[userColIndex] && row[userColIndex].trim() === userNameForLookup) {
                     displayScore.textContent = row[scoreColIndex] || 'ไม่มีข้อมูล';
                     displayStatus.textContent = row[statusColIndex] || 'ไม่มีข้อมูล';
                     scoreDisplay.classList.remove('hidden');
                     found = true;
+                    console.log('User found! Score:', row[scoreColIndex], 'Status:', row[statusColIndex]); // <-- บรรทัดนี้
                     break;
                 }
             }
