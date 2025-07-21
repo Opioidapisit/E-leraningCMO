@@ -223,8 +223,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const csvText = await response.text();
             console.log('Raw CSV Text:', csvText); // <-- บรรทัดนี้
 
-            // Simple CSV parsing (consider a more robust library for complex CSVs)
-            const rows = csvText.trim().split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
+            // ใช้ regex ที่ซับซ้อนขึ้นเพื่อจัดการ CSV ที่มีเครื่องหมายคำพูด
+            // Ref: https://stackoverflow.com/questions/8493195/how-can-i-parse-a-csv-string-with-javascript-which-contains-empty-values-and-co
+            const parseCSV = (text) => {
+                const rows = text.trim().split(/\r?\n/);
+                return rows.map(row => {
+                    const cells = [];
+                    let inQuote = false;
+                    let currentCell = '';
+                    for (let i = 0; i < row.length; i++) {
+                        const char = row[i];
+                        if (char === '"') {
+                            inQuote = !inQuote;
+                        } else if (char === ',' && !inQuote) {
+                            cells.push(currentCell.replace(/^"|"$/g, '')); // Trim quotes if present
+                            currentCell = '';
+                        } else {
+                            currentCell += char;
+                        }
+                    }
+                    cells.push(currentCell.replace(/^"|"$/g, '')); // Add last cell
+                    return cells;
+                });
+            };
+            const rows = parseCSV(csvText); // เรียกใช้ฟังก์ชัน parseCSV ใหม่
             console.log('Parsed Rows:', rows); // <-- บรรทัดนี้
 
             // Assuming headers are in the first row
