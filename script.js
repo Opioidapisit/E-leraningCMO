@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Few: { password: '006-2', name: 'ฟิว สาขารัษฎา', role: 'user' },
         Aom: { password: '007-1', name: 'อ้อม สาขารักษ์จันทน์', role: 'user' },
         Pond: { password: '008-1', name: 'พร สาขาหน้าสภาราชินี', role: 'user' },
-        Bow: { password: '008-2', name: 'โบว์ สาขาหน้าสภาราชินี', role: 'user' },
+        Bow: { password: '008-2', name: 'โบว์ สาขาบิ๊กซี', role: 'user' },
         Cream: { password: '009-1', name: 'ครีม สาขาบิ๊กซี', role: 'user' }
     };
 
