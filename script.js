@@ -100,22 +100,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLinks(targetElement, links, type, isAdmin = false) {
         targetElement.innerHTML = '';
         if (links.length === 0) {
-            targetElement.innerHTML = `<p>ยังไม่มี${type === 'video' ? 'คลิปวิดีโอ' : 'แบบทดสอบ'}ประจำเดือนนี้</p>`;
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'info-text';
+            emptyMsg.style.textAlign = 'center';
+            emptyMsg.innerHTML = `<i class="fa-regular fa-folder-open"></i> ยังไม่มี${type === 'video' ? 'คลิปวิดีโอ' : 'แบบทดสอบ'}ประจำเดือนนี้`;
+            targetElement.appendChild(emptyMsg);
             return;
         }
         links.forEach((link, index) => {
-            if (link.trim() === '') return; // Skip empty links
+            if (link.trim() === '') return; 
+            
             const div = document.createElement('div');
-            div.className = `${type}-item`;
+            // ใช้ class เดิมเพื่อให้ CSS ทำงาน
+            div.className = `${type}-item`; 
+            
             const a = document.createElement('a');
             a.href = link;
-            a.textContent = `${type === 'video' ? 'คลิปวิดีโอ' : 'แบบทดสอบ'} #${index + 1}`;
+            // ลบ text "คลิปวิดีโอ #" ออก แล้วใส่แค่ชื่อ หรือ icon ใน CSS แทน เพื่อความคลีน
+            // หรือถ้าอยากให้มีข้อความ:
+            a.textContent = `${type === 'video' ? 'คลิปบทเรียนที่' : 'แบบทดสอบชุดที่'} ${index + 1}`;
             a.target = '_blank';
+            
             div.appendChild(a);
+            
+            // ส่วนของปุ่มลบ (สำหรับ Admin) - ถ้าอยากซ่อนในหน้า Admin แบบใหม่ก็ไม่ต้องใส่
+            // แต่ถ้าจะใส่ให้ใช้ icon แทน
+            if (isAdmin) {
+               // ในดีไซน์ใหม่เราเน้นดูผ่าน Sheet แต่ถ้าจะคงไว้:
+               // const delBtn = document.createElement('span');
+               // delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+               // delBtn.className = 'delete-button';
+               // div.appendChild(delBtn);
+            }
+
             targetElement.appendChild(div);
         });
     }
-
     // --- Login Functionality ---
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
