@@ -4,85 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิคยา มอ ออ จังหวัดตรัง</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container" id="login-page">
-        <h1>ระบบเรียนรู้ด้วยตัวเอง  <br> ร้านยาคลินิคยา มอ ออ จังหวัดตรัง 🎓</h1>
+    
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container fade-in" id="login-page">
+        <div class="header-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <h1>ระบบเรียนรู้ด้วยตัวเอง <br><span>ร้านยาคลินิคยา มอ ออ</span></h1>
+        <p class="subtitle">เข้าสู่ระบบเพื่อเริ่มการเรียนรู้</p>
+        
         <form id="login-form">
             <div class="input-group">
-                <label for="username">ชื่อผู้ใช้งาน:</label>
-                <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้งาน" required>
+                <label for="username"><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน</label>
+                <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้งาน..." required>
             </div>
             <div class="input-group">
-                <label for="password">รหัสผ่าน:</label>
-                <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
+                <label for="password"><i class="fa-solid fa-lock"></i> รหัสผ่าน</label>
+                <input type="password" id="password" placeholder="กรอกรหัสผ่าน..." required>
             </div>
-            <button type="submit">เข้าสู่ระบบ ✨</button>
+            <button type="submit" class="btn-primary">เข้าสู่ระบบ <i class="fa-solid fa-arrow-right"></i></button>
             <div id="login-error" class="error-message"></div>
         </form>
     </div>
 
-    <div class="container hidden" id="user-page">
-        <h1 id="user-page-title">ระบบเรียนรู้ด้วยตัวเอง  <br> ร้านยาคลินิคยา มอ ออ จังหวัดตรัง 📚</h1>
-        <h2 id="welcome-message"></h2>
-
-        <div class="section">
-            <h3>คลิปวิดีโอประจำเดือนนี้ 🎬</h3>
-            <div id="video-list">
-                </div>
+    <div class="container hidden fade-in" id="user-page">
+        <div class="profile-header">
+            <div class="avatar"><i class="fa-solid fa-user-circle"></i></div>
+            <h2 id="welcome-message">ยินดีต้อนรับ</h2>
         </div>
 
-        <div class="section">
-            <h3>แบบทดสอบประจำเดือนนี้ 📝</h3>
-            <button id="take-quiz-button" class="action-button">กรุณาคลิกเพื่อทำแบบทดสอบ</button>
-        </div>
-
-        <div class="section">
-            <h3>ตรวจสอบคะแนนประจำเดือนนี้ 📊</h3>
-            <button id="check-score-button" class="action-button">ตรวจสอบคะแนน 💯</button>
-            <div id="score-display" class="hidden">
-                <p><strong>ชื่อผู้ใช้งาน:</strong> <span id="display-user-name"></span></p>
-                <p><strong>คะแนน:</strong> <span id="display-score"></span></p>
-                <p><strong>สถานะ:</strong> <span id="display-status"></span></p>
+        <div class="grid-container">
+            <div class="card section">
+                <h3><i class="fa-solid fa-video"></i> คลิปวิดีโอประจำเดือน</h3>
+                <div id="video-list" class="list-container"></div>
             </div>
-            <div id="score-error" class="error-message"></div>
+
+            <div class="card section">
+                <h3><i class="fa-solid fa-clipboard-question"></i> แบบทดสอบ</h3>
+                <p class="desc">ทดสอบความรู้ประจำเดือนนี้</p>
+                <button id="take-quiz-button" class="action-button btn-gradient">เริ่มทำแบบทดสอบ <i class="fa-solid fa-play"></i></button>
+            </div>
+
+            <div class="card section">
+                <h3><i class="fa-solid fa-chart-line"></i> ตรวจสอบคะแนน</h3>
+                <button id="check-score-button" class="action-button btn-outline">ดูผลคะแนนของคุณ</button>
+                
+                <div id="score-display" class="score-box hidden">
+                    <div class="score-item">
+                        <span class="label">ชื่อผู้ใช้งาน</span>
+                        <span class="value" id="display-user-name">-</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">คะแนนที่ได้</span>
+                        <span class="value highlight" id="display-score">-</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">สถานะ</span>
+                        <span class="value badge" id="display-status">-</span>
+                    </div>
+                </div>
+                <div id="score-error" class="error-message"></div>
+            </div>
         </div>
 
-        <button id="logout-button-user" class="logout-button">ออกจากระบบ 🚪</button>
+        <button id="logout-button-user" class="logout-button"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
     </div>
 
-    <div class="container hidden" id="admin-page">
-        <h1 id="admin-page-title">ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิคยา มอ ออ จังหวัดตรัง ⚙️</h1>
+    <div class="container hidden fade-in" id="admin-page">
+        <div class="header-icon admin-icon"><i class="fa-solid fa-user-gear"></i></div>
+        <h1 id="admin-page-title">ส่วนจัดการระบบ (Admin)</h1>
         <h2 id="admin-welcome-message"></h2>
 
-        <div class="section">
-            <h3>จัดการคลิปวิดีโอประจำเดือน 🎥</h3>
-            <div class="input-group">
-                <input type="text" id="video-link-input" placeholder="เพิ่มลิงก์วิดีโอ (เช่น YouTube)">
-                <button id="add-video-link-button">เพิ่มลิงก์</button>
+        <div class="card section">
+            <h3><i class="fa-brands fa-google-drive"></i> จัดการเนื้อหา</h3>
+            <p class="info-text">จัดการลิงก์วิดีโอและแบบทดสอบผ่าน Google Sheet</p>
+            
+            <div class="admin-lists">
+                <div class="list-group">
+                    <h4>วิดีโอปัจจุบัน</h4>
+                    <ul id="admin-video-list"></ul>
+                </div>
+                <div class="list-group">
+                    <h4>แบบทดสอบปัจจุบัน</h4>
+                    <ul id="admin-quiz-list"></ul>
+                </div>
             </div>
-            <ul id="admin-video-list">
-                </ul>
+        </div>
+
+        <div style="display:none;">
+            <input type="text" id="video-link-input"><button id="add-video-link-button"></button>
+            <input type="text" id="quiz-link-input"><button id="add-quiz-link-button"></button>
         </div>
 
         <div class="section">
-            <h3>จัดการแบบทดสอบประจำเดือน ✍️</h3>
-            <div class="input-group">
-                <input type="text" id="quiz-link-input" placeholder="เพิ่มลิงก์ Google Form">
-                <button id="add-quiz-link-button">เพิ่มลิงก์</button>
-            </div>
-            <ul id="admin-quiz-list">
-                </ul>
+            <button id="view-all-results-button" class="action-button btn-primary"><i class="fa-solid fa-table-list"></i> ดูผลสอบทั้งหมดใน Sheet</button>
         </div>
 
-        <div class="section">
-            <h3>ดูผลสอบทั้งหมด 📋</h3>
-            <button id="view-all-results-button" class="action-button">คลิกเพื่อดูผลสอบทั้งหมด</button>
-        </div>
-
-        <button id="logout-button-admin" class="logout-button">ออกจากระบบ 🚪</button>
+        <button id="logout-button-admin" class="logout-button"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
     </div>
 
     <script src="script.js"></script>
