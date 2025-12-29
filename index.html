@@ -6,6 +6,7 @@
     <title>ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิคยา มอ ออ จังหวัดตรัง</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -36,6 +37,17 @@
         <div class="profile-header">
             <div class="avatar"><i class="fa-solid fa-user-circle"></i></div>
             <h2 id="welcome-message">ยินดีต้อนรับ</h2>
+        </div>
+
+        <div class="card section highlight-card">
+            <h3><i class="fa-solid fa-trophy"></i> อันดับสาขาประจำเดือน</h3>
+            <div class="chart-container" style="height: 220px;">
+                <canvas id="userBranchChart"></canvas>
+            </div>
+            <div class="mini-stats">
+                 <p><i class="fa-solid fa-users"></i> เพื่อนๆ ส่งงานแล้ว: <strong id="user-stat-submitted">0</strong> คน</p>
+                 <p><i class="fa-solid fa-star"></i> คะแนนเฉลี่ยรวม: <strong id="user-stat-avg">0.0</strong></p>
+            </div>
         </div>
 
         <div class="grid-container">
@@ -81,9 +93,43 @@
         <h2 id="admin-welcome-message"></h2>
 
         <div class="card section">
+            <h3><i class="fa-solid fa-chart-pie"></i> ภาพรวมประจำเดือน</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">ส่งงานแล้ว</span>
+                        <span class="stat-value" id="stat-submitted">0/0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">คะแนนเฉลี่ย</span>
+                        <span class="stat-value" id="stat-avg-score">0.0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">ยังไม่ทำ</span>
+                        <span class="stat-value" id="stat-pending">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="branchChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card section">
+            <h3><i class="fa-solid fa-user-clock"></i> พนักงานที่ยังไม่ทำแบบทดสอบ</h3>
+            <ul id="pending-user-list" class="pending-list"></ul>
+        </div>
+
+        <div class="card section">
             <h3><i class="fa-brands fa-google-drive"></i> จัดการเนื้อหา</h3>
             <p class="info-text">จัดการลิงก์วิดีโอและแบบทดสอบผ่าน Google Sheet</p>
-            
             <div class="admin-lists">
                 <div class="list-group">
                     <h4>วิดีโอปัจจุบัน</h4>
