@@ -20,19 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const takeQuizButton = document.getElementById('take-quiz-button');
     const checkScoreButton = document.getElementById('check-score-button');
 
-    // Admin specific elements (some will be simplified as management moves to Google Sheet)
-    const videoLinkInput = document.getElementById('video-link-input'); // These inputs will now be for user info, not link management
-    const addVideoLinkButton = document.getElementById('add-video-link-button'); // This button will be removed or repurposed
-    const adminVideoList = document.getElementById('admin-video-list'); // This will now just display links from sheet
-    const quizLinkInput = document.getElementById('quiz-link-input');
-    const addQuizLinkButton = document.getElementById('add-quiz-link-button');
+    const adminVideoList = document.getElementById('admin-video-list');
     const adminQuizList = document.getElementById('admin-quiz-list');
-
     const viewAllResultsButton = document.getElementById('view-all-results-button');
     const logoutButtonUser = document.getElementById('logout-button-user');
     const logoutButtonAdmin = document.getElementById('logout-button-admin');
 
-    // User data (hardcoded for demonstration)
+    // Users Data
     const users = {
         admin: { password: 'admin', name: 'Admin', role: 'admin' },
         Ice: { password: '001-1', name: 'ไอซ์ สาขานาเมืองเพชร', role: 'user' },
@@ -44,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Mint: { password: '004-1', name: 'มินท์ สาขานาโยง', role: 'user' },
         Pair: { password: '004-2', name: 'แพร สาขานาโยง', role: 'user' },
         Maprang: { password: '004-3', name: 'มะปราง สาขานาโยง', role: 'user' },
-        Maple: { password: '005-1', name: 'เมเปิ้ล สาขาท่ากลาง', 'role': 'user' },
+        Maple: { password: '005-1', name: 'เมเปิ้ล สาขาท่ากลาง', role: 'user' },
         Toey: { password: '005-2', name: 'เตย สาขาท่ากลาง', role: 'user' },
         Oil: { password: '005-3', name: 'ออย สาขาท่ากลาง', role: 'user' },
         Nuch: { password: '006-1', name: 'นุช สาขารัษฎา', role: 'user' },
@@ -56,17 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let loggedInUser = null;
 
-    // --- Google Sheet Configuration for Links ---
+    // Google Sheet Config
     const LINKS_SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
-    const LINKS_GID = '1566756560'; // GID for the sheet containing video and quiz links
+    const LINKS_GID = '1566756560'; 
     const LINKS_GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${LINKS_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${LINKS_GID}`;
 
-    // --- Google Sheet Configuration for Scores ---
     const SCORES_SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
-    const SCORES_GID = '441233492'; // GID for the sheet containing scores
+    const SCORES_GID = '441233492';
     const SCORES_GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SCORES_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SCORES_GID}`;
 
-    // --- Utility Functions ---
+    // Helper Functions
     function showPage(pageId) {
         loginPage.classList.add('hidden');
         userPage.classList.add('hidden');
@@ -74,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(pageId).classList.remove('hidden');
     }
 
-    // Improved CSV parsing function
     const parseCSV = (text) => {
         const rows = text.trim().split(/\r?\n/);
         return rows.map(row => {
@@ -83,60 +75,169 @@ document.addEventListener('DOMContentLoaded', () => {
             let currentCell = '';
             for (let i = 0; i < row.length; i++) {
                 const char = row[i];
-                if (char === '"') {
-                    inQuote = !inQuote;
-                } else if (char === ',' && !inQuote) {
-                    cells.push(currentCell.replace(/^"|"$/g, ''));
-                    currentCell = '';
-                } else {
-                    currentCell += char;
-                }
+                if (char === '"') { inQuote = !inQuote; }
+                else if (char === ',' && !inQuote) { cells.push(currentCell.replace(/^"|"$/g, '')); currentCell = ''; }
+                else { currentCell += char; }
             }
             cells.push(currentCell.replace(/^"|"$/g, ''));
             return cells;
         });
     };
 
-    function renderLinks(targetElement, links, type, isAdmin = false) {
+    function renderLinks(targetElement, links, type) {
         targetElement.innerHTML = '';
         if (links.length === 0) {
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'info-text';
-            emptyMsg.style.textAlign = 'center';
-            emptyMsg.innerHTML = `<i class="fa-regular fa-folder-open"></i> ยังไม่มี${type === 'video' ? 'คลิปวิดีโอ' : 'แบบทดสอบ'}ประจำเดือนนี้`;
-            targetElement.appendChild(emptyMsg);
+            targetElement.innerHTML = `<div class="info-text" style="text-align:center;"><i class="fa-regular fa-folder-open"></i> ยังไม่มี${type === 'video' ? 'คลิป' : 'แบบทดสอบ'}</div>`;
             return;
         }
         links.forEach((link, index) => {
-            if (link.trim() === '') return; 
-            
+            if (link.trim() === '') return;
             const div = document.createElement('div');
-            // ใช้ class เดิมเพื่อให้ CSS ทำงาน
-            div.className = `${type}-item`; 
-            
+            div.className = `${type}-item`;
             const a = document.createElement('a');
             a.href = link;
-            // ลบ text "คลิปวิดีโอ #" ออก แล้วใส่แค่ชื่อ หรือ icon ใน CSS แทน เพื่อความคลีน
-            // หรือถ้าอยากให้มีข้อความ:
             a.textContent = `${type === 'video' ? 'คลิปบทเรียนที่' : 'แบบทดสอบชุดที่'} ${index + 1}`;
             a.target = '_blank';
-            
             div.appendChild(a);
-            
-            // ส่วนของปุ่มลบ (สำหรับ Admin) - ถ้าอยากซ่อนในหน้า Admin แบบใหม่ก็ไม่ต้องใส่
-            // แต่ถ้าจะใส่ให้ใช้ icon แทน
-            if (isAdmin) {
-               // ในดีไซน์ใหม่เราเน้นดูผ่าน Sheet แต่ถ้าจะคงไว้:
-               // const delBtn = document.createElement('span');
-               // delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-               // delBtn.className = 'delete-button';
-               // div.appendChild(delBtn);
-            }
-
             targetElement.appendChild(div);
         });
     }
-    // --- Login Functionality ---
+
+    // --- DASHBOARD LOGIC (NEW) ---
+    async function loadDashboard(role) {
+        try {
+            const response = await fetch(SCORES_GOOGLE_SHEET_URL);
+            if (!response.ok) throw new Error('Network error');
+            const csvText = await response.text();
+            const rows = parseCSV(csvText);
+
+            const headers = rows[0].map(h => h.trim());
+            const userColIndex = headers.indexOf('User');
+            const scoreColIndex = headers.indexOf('คะแนน');
+
+            // Get total staff count (exclude admin)
+            const allStaff = Object.values(users).filter(u => u.role !== 'admin');
+            const totalStaff = allStaff.length;
+
+            let submittedCount = 0;
+            let totalScore = 0;
+            const submittedNames = new Set();
+            const branchScores = {};
+
+            // Calculate scores
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const userName = row[userColIndex]?.trim();
+                let score = parseFloat(row[scoreColIndex]);
+
+                if (userName && !isNaN(score)) {
+                    if (!submittedNames.has(userName)) {
+                        submittedNames.add(userName);
+                        submittedCount++;
+                        totalScore += score;
+
+                        // Branch Logic
+                        const parts = userName.split(' สาขา');
+                        if (parts.length > 1) {
+                            const branchName = 'สาขา' + parts[1];
+                            if (!branchScores[branchName]) branchScores[branchName] = [];
+                            branchScores[branchName].push(score);
+                        }
+                    }
+                }
+            }
+
+            const avgScore = submittedCount > 0 ? (totalScore / submittedCount).toFixed(2) : 0;
+
+            if (role === 'admin') {
+                const pendingCount = totalStaff - submittedCount;
+                document.getElementById('stat-submitted').textContent = `${submittedCount}/${totalStaff}`;
+                document.getElementById('stat-avg-score').textContent = avgScore;
+                document.getElementById('stat-pending').textContent = pendingCount;
+
+                // Pending List
+                const pendingListEl = document.getElementById('pending-user-list');
+                pendingListEl.innerHTML = '';
+                allStaff.forEach(staff => {
+                    if (!submittedNames.has(staff.name)) {
+                        const li = document.createElement('li');
+                        li.textContent = staff.name;
+                        pendingListEl.appendChild(li);
+                    }
+                });
+                if (pendingCount === 0) pendingListEl.innerHTML = '<li style="color:var(--success)">🎉 ครบทุกคนแล้ว!</li>';
+
+                renderChart('branchChart', branchScores, avgScore);
+
+            } else {
+                // User Dashboard
+                document.getElementById('user-stat-submitted').textContent = submittedCount;
+                document.getElementById('user-stat-avg').textContent = avgScore;
+                renderChart('userBranchChart', branchScores, avgScore);
+            }
+
+        } catch (error) {
+            console.error('Dashboard Error:', error);
+        }
+    }
+
+    function renderChart(canvasId, branchScores, globalAvg) {
+        const ctxElement = document.getElementById(canvasId);
+        if (!ctxElement) return;
+
+        const ctx = ctxElement.getContext('2d');
+        const labels = Object.keys(branchScores);
+        const data = labels.map(branch => {
+            const scores = branchScores[branch];
+            const sum = scores.reduce((a, b) => a + b, 0);
+            return (sum / scores.length).toFixed(2);
+        });
+
+        // Color Logic: Green if >= Avg, Orange if < Avg
+        const bgColors = data.map(score => parseFloat(score) >= parseFloat(globalAvg) ? 'rgba(34, 197, 94, 0.7)' : 'rgba(249, 115, 22, 0.7)');
+        const borderColors = data.map(score => parseFloat(score) >= parseFloat(globalAvg) ? 'rgba(34, 197, 94, 1)' : 'rgba(249, 115, 22, 1)');
+
+        if (window[canvasId] instanceof Chart) {
+            window[canvasId].destroy();
+        }
+
+        window[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'คะแนนเฉลี่ย',
+                    data: data,
+                    backgroundColor: bgColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: { label: (ctx) => `สาขานี้: ${ctx.parsed.y} (เฉลี่ยรวม: ${globalAvg})` }
+                    },
+                    title: {
+                        display: true,
+                        text: `เกณฑ์คะแนนเฉลี่ยส่วนกลาง: ${globalAvg}`,
+                        color: '#64748b',
+                        padding: { bottom: 10 }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- LOGIN ---
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = usernameInput.value.trim();
@@ -151,13 +252,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const userDisplayName = users[loggedInUser].name;
 
             if (users[loggedInUser].role === 'admin') {
-                adminWelcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName} 🎉 มาจัดการเนื้อหากันได้เลย`;
+                adminWelcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName}`;
                 loadAdminContent();
+                loadDashboard('admin'); // Load Admin Dashboard
                 showPage('admin-page');
             } else {
-                welcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName} 👋 มาเรียนรู้ด้วยตัวเองประจำเดือนนี้กันได้เลย`;
+                welcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName}`;
                 displayUserName.textContent = userDisplayName;
                 loadUserContent();
+                loadDashboard('user'); // Load User Dashboard
                 showPage('user-page');
             }
         } else {
@@ -165,200 +268,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    loginForm.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            loginForm.dispatchEvent(new Event('submit'));
-        }
-    });
-
-    // --- User Page Functionality ---
+    // --- CONTENT LOADERS ---
     async function loadUserContent() {
         try {
             const response = await fetch(LINKS_GOOGLE_SHEET_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
             const csvText = await response.text();
             const rows = parseCSV(csvText);
-
-            const headers = rows[0].map(header => header.trim());
-            const videoColIndex = headers.indexOf('Video Link'); // Assuming column A is named "Video Link"
-            const quizColIndex = headers.indexOf('Quiz Link');   // Assuming column B is named "Quiz Link"
-
-            if (videoColIndex === -1 || quizColIndex === -1) {
-                console.error("Column 'Video Link' or 'Quiz Link' not found in the links sheet.");
-                videoList.innerHTML = '<p class="error-message">ไม่พบข้อมูลลิงก์วิดีโอหรือแบบทดสอบ กรุณาแจ้ง Admin</p>';
-                takeQuizButton.disabled = true;
-                return;
-            }
-
-            const videoLinks = [];
-            const quizLinks = [];
-            for (let i = 1; i < rows.length; i++) { // Start from second row (data rows)
-                const row = rows[i];
-                if (row[videoColIndex]) videoLinks.push(row[videoColIndex].trim());
-                if (row[quizColIndex]) quizLinks.push(row[quizColIndex].trim());
-            }
-
-            renderLinks(videoList, videoLinks, 'video');
-
-            // Store quiz links temporarily for the button
-            takeQuizButton.onclick = () => {
-                if (quizLinks.length > 0) {
-                    window.open(quizLinks[0], '_blank', 'noopener,noreferrer');
-                } else {
-                    alert('ยังไม่มีแบบทดสอบประจำเดือนนี้ให้ทำ กรุณารอ Admin เพิ่มลิงก์แบบทดสอบ');
-                }
-            };
-
-        } catch (error) {
-            console.error('Error fetching links from Google Sheet:', error);
-            videoList.innerHTML = '<p class="error-message">เกิดข้อผิดพลาดในการดึงลิงก์ กรุณาลองใหม่ในภายหลัง</p>';
-            takeQuizButton.disabled = true;
-        }
-    }
-
-
-    checkScoreButton.addEventListener('click', async () => {
-        scoreError.textContent = '';
-        scoreDisplay.classList.add('hidden');
-        displayScore.textContent = '';
-        displayStatus.textContent = '';
-
-        if (!loggedInUser) {
-            scoreError.textContent = 'เกิดข้อผิดพลาด: ไม่พบข้อมูลผู้ใช้งาน';
-            return;
-        }
-
-        const userNameForLookup = users[loggedInUser].name;
-        console.log('User Name for Lookup:', userNameForLookup);
-
-        try {
-            const response = await fetch(SCORES_GOOGLE_SHEET_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const csvText = await response.text();
-            console.log('Raw CSV Text (คะแนน):', csvText);
-
-            const rows = parseCSV(csvText);
-            console.log('Parsed Rows (คะแนน):', rows);
-
-            const headers = rows[0].map(header => header.trim());
-            const dataRows = rows.slice(1);
-            console.log('Headers (คะแนน):', headers);
-
-            const userColIndex = headers.indexOf('User');
-            const scoreColIndex = headers.indexOf('คะแนน');
-            const statusColIndex = headers.indexOf('Status');
-            console.log('Column Indices - User:', userColIndex, 'คะแนน:', scoreColIndex, 'Status:', statusColIndex);
-
-            if (userColIndex === -1 || scoreColIndex === -1 || statusColIndex === -1) {
-                throw new Error("ไม่พบชื่อคอลัมน์ที่จำเป็น ('User', 'คะแนน', 'Status') ใน Google Sheet ผลคะแนนของคุณ กรุณาตรวจสอบว่าสะกดถูกต้องและ **ไม่มีช่องว่างด้านหน้าหรือด้านหลังชื่อคอลัมน์** ในแถวแรกของชีท");
-            }
-
-            let found = false;
-            for (const row of dataRows) {
-                const cellUserName = row[userColIndex] ? row[userColIndex].trim() : '';
-                console.log('Checking row (คะแนน):', cellUserName, 'against', userNameForLookup);
-                if (cellUserName === userNameForLookup) {
-                    displayScore.textContent = row[scoreColIndex] || 'ไม่มีข้อมูล';
-                    displayStatus.textContent = row[statusColIndex] || 'ไม่มีข้อมูล';
-                    scoreDisplay.classList.remove('hidden');
-                    found = true;
-                    console.log('User found! คะแนน:', row[scoreColIndex], 'Status:', row[statusColIndex]);
-                    break;
-                }
-            }
-
-            if (!found) {
-                scoreError.textContent = 'ไม่พบผลคะแนนของท่าน กรุณาทำแบบทดสอบประจำเดือนก่อน 😔';
-            }
-
-        } catch (error) {
-            console.error('Error fetching or parsing spreadsheet data (คะแนน):', error);
-            scoreError.textContent = error.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลคะแนน กรุณาลองอีกครั้งในภายหลัง';
-        }
-    });
-
-    // --- Admin Page Functionality ---
-    async function loadAdminContent() {
-        try {
-            const response = await fetch(LINKS_GOOGLE_SHEET_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const csvText = await response.text();
-            const rows = parseCSV(csvText);
-
-            const headers = rows[0].map(header => header.trim());
-            const videoColIndex = headers.indexOf('Video Link');
-            const quizColIndex = headers.indexOf('Quiz Link');
-
-            if (videoColIndex === -1 || quizColIndex === -1) {
-                console.error("Column 'Video Link' or 'Quiz Link' not found in the links sheet for admin view.");
-                adminVideoList.innerHTML = '<p class="error-message">ไม่พบข้อมูลคอลัมน์ลิงก์วิดีโอหรือแบบทดสอบในชีท</p>';
-                adminQuizList.innerHTML = '';
-                return;
-            }
+            const headers = rows[0].map(h => h.trim());
+            const videoCol = headers.indexOf('Video Link');
+            const quizCol = headers.indexOf('Quiz Link');
 
             const videoLinks = [];
             const quizLinks = [];
             for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (row[videoColIndex]) videoLinks.push(row[videoColIndex].trim());
-                if (row[quizColIndex]) quizLinks.push(row[quizColIndex].trim());
+                if (rows[i][videoCol]) videoLinks.push(rows[i][videoCol].trim());
+                if (rows[i][quizCol]) quizLinks.push(rows[i][quizCol].trim());
             }
 
-            // For admin view, just display the links from the sheet.
-            // Admin can edit the sheet directly.
-            renderLinks(adminVideoList, videoLinks, 'video', true); // Pass true for isAdmin to show delete buttons (though they won't delete from sheet directly)
-            renderLinks(adminQuizList, quizLinks, 'quiz', true);
-
-            // Hide or disable local storage management UI for Admin
-            videoLinkInput.style.display = 'none';
-            addVideoLinkButton.style.display = 'none';
-            quizLinkInput.style.display = 'none';
-            addQuizLinkButton.style.display = 'none';
-
-            // You might want to add a message for admin to edit the Google Sheet directly
-            if (adminVideoList.innerHTML === '<p>ยังไม่มีคลิปวิดีโอประจำเดือนนี้</p>') {
-                 adminVideoList.innerHTML += '<p><strong>ℹ️ จัดการลิงก์วิดีโอโดยตรงใน Google Sheet คอลัมน์ A (Video Link)</strong></p>';
-            }
-            if (adminQuizList.innerHTML === '<p>ยังไม่มีแบบทดสอบประจำเดือนนี้</p>') {
-                adminQuizList.innerHTML += '<p><strong>ℹ️ จัดการลิงก์แบบทดสอบโดยตรงใน Google Sheet คอลัมน์ B (Quiz Link)</strong></p>';
-            }
-
-
-        } catch (error) {
-            console.error('Error fetching links for admin from Google Sheet:', error);
-            adminVideoList.innerHTML = '<p class="error-message">เกิดข้อผิดพลาดในการดึงลิงก์สำหรับ Admin กรุณาลองใหม่ในภายหลัง</p>';
-            adminQuizList.innerHTML = '';
-        }
+            renderLinks(videoList, videoLinks, 'video');
+            takeQuizButton.onclick = () => {
+                if (quizLinks.length > 0) window.open(quizLinks[0], '_blank');
+                else alert('ยังไม่มีแบบทดสอบประจำเดือนนี้');
+            };
+        } catch (error) { console.error(error); }
     }
 
+    async function loadAdminContent() {
+        try {
+            const response = await fetch(LINKS_GOOGLE_SHEET_URL);
+            const csvText = await response.text();
+            const rows = parseCSV(csvText);
+            const headers = rows[0].map(h => h.trim());
+            const videoCol = headers.indexOf('Video Link');
+            const quizCol = headers.indexOf('Quiz Link');
 
-    // The Add/Delete link buttons for admin are now redundant as links are managed in Google Sheet
-    // So we'll hide them via CSS or remove them in JS for clarity in admin page.
-    // For now, I've added display: none in loadAdminContent().
+            const videoLinks = [];
+            const quizLinks = [];
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][videoCol]) videoLinks.push(rows[i][videoCol].trim());
+                if (rows[i][quizCol]) quizLinks.push(rows[i][quizCol].trim());
+            }
+
+            renderLinks(adminVideoList, videoLinks, 'video');
+            renderLinks(adminQuizList, quizLinks, 'quiz');
+        } catch (error) { console.error(error); }
+    }
+
+    checkScoreButton.addEventListener('click', async () => {
+        scoreError.textContent = '';
+        scoreDisplay.classList.add('hidden');
+        if (!loggedInUser) return;
+
+        const userNameForLookup = users[loggedInUser].name;
+        try {
+            const response = await fetch(SCORES_GOOGLE_SHEET_URL);
+            const csvText = await response.text();
+            const rows = parseCSV(csvText);
+            const headers = rows[0].map(h => h.trim());
+            const userCol = headers.indexOf('User');
+            const scoreCol = headers.indexOf('คะแนน');
+            const statusCol = headers.indexOf('Status');
+
+            let found = false;
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i][userCol]?.trim() === userNameForLookup) {
+                    displayScore.textContent = rows[i][scoreCol] || '-';
+                    displayStatus.textContent = rows[i][statusCol] || '-';
+                    scoreDisplay.classList.remove('hidden');
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) scoreError.textContent = 'ไม่พบผลคะแนนของท่าน กรุณาทำแบบทดสอบก่อน';
+        } catch (error) { scoreError.textContent = 'เกิดข้อผิดพลาดในการดึงข้อมูล'; }
+    });
 
     viewAllResultsButton.addEventListener('click', () => {
-        const sheetLink = `https://docs.google.com/spreadsheets/d/${SCORES_SHEET_ID}/edit?resourcekey=&gid=${SCORES_GID}#gid=${SCORES_GID}`;
-        window.open(sheetLink, '_blank', 'noopener,noreferrer');
+        window.open(`https://docs.google.com/spreadsheets/d/${SCORES_SHEET_ID}/edit#gid=${SCORES_GID}`, '_blank');
     });
 
-    // --- Logout Functionality ---
-    logoutButtonUser.addEventListener('click', () => {
-        loggedInUser = null;
-        showPage('login-page');
-    });
+    logoutButtonUser.addEventListener('click', () => { loggedInUser = null; showPage('login-page'); });
+    logoutButtonAdmin.addEventListener('click', () => { loggedInUser = null; showPage('login-page'); });
 
-    logoutButtonAdmin.addEventListener('click', () => {
-        loggedInUser = null;
-        showPage('login-page');
-    });
-
-    // Initial page load (show login page)
+    // Initial Load
     showPage('login-page');
 });
