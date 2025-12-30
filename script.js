@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // --- DOM Elements ---
     const loginPage = document.getElementById('login-page');
     const userPage = document.getElementById('user-page');
     const adminPage = document.getElementById('admin-page');
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButtonUser = document.getElementById('logout-button-user');
     const logoutButtonAdmin = document.getElementById('logout-button-admin');
 
-    // Users Data
+    // --- Users Data ---
     const users = {
         admin: { password: 'admin', name: 'Admin', role: 'admin' },
         Ice: { password: '001-1', name: 'ไอซ์ สาขานาเมืองเพชร', role: 'user' },
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let loggedInUser = null;
 
-    // Google Sheet Config
+    // --- Google Sheet Config ---
     const LINKS_SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI';
     const LINKS_GID = '1566756560'; 
     const LINKS_GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${LINKS_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${LINKS_GID}`;
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const SCORES_GID = '441233492';
     const SCORES_GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SCORES_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SCORES_GID}`;
 
-    // Helper Functions
+    // --- Helper Functions ---
     function showPage(pageId) {
         loginPage.classList.add('hidden');
         userPage.classList.add('hidden');
@@ -95,7 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `${type}-item`;
             const a = document.createElement('a');
-            a.href = link;
+            
+            // ถ้าเป็นลิงก์วิดีโอ ให้แสดงปกติ
+            // ถ้าเป็นลิงก์แบบทดสอบ จะไม่ให้คลิกตรงนี้ (ให้ไปกดปุ่มใหญ่แทน) หรือถ้ากดก็ให้ไปแบบมีชื่อ
+            let finalLink = link;
+            if (type === 'quiz' && loggedInUser && link.includes('XXX')) {
+                 finalLink = link.replace('XXX', encodeURIComponent(users[loggedInUser].name));
+            }
+
+            a.href = finalLink;
             a.textContent = `${type === 'video' ? 'คลิปบทเรียนที่' : 'แบบทดสอบชุดที่'} ${index + 1}`;
             a.target = '_blank';
             div.appendChild(a);
@@ -103,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DASHBOARD LOGIC (NEW) ---
+    // --- DASHBOARD LOGIC ---
     async function loadDashboard(role) {
         try {
             const response = await fetch(SCORES_GOOGLE_SHEET_URL);
@@ -115,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const userColIndex = headers.indexOf('User');
             const scoreColIndex = headers.indexOf('คะแนน');
 
-            // Get total staff count (exclude admin)
             const allStaff = Object.values(users).filter(u => u.role !== 'admin');
             const totalStaff = allStaff.length;
 
@@ -124,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const submittedNames = new Set();
             const branchScores = {};
 
-            // Calculate scores
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 const userName = row[userColIndex]?.trim();
@@ -136,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         submittedCount++;
                         totalScore += score;
 
-                        // Branch Logic
                         const parts = userName.split(' สาขา');
                         if (parts.length > 1) {
                             const branchName = 'สาขา' + parts[1];
@@ -155,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('stat-avg-score').textContent = avgScore;
                 document.getElementById('stat-pending').textContent = pendingCount;
 
-                // Pending List
                 const pendingListEl = document.getElementById('pending-user-list');
                 pendingListEl.innerHTML = '';
                 allStaff.forEach(staff => {
@@ -170,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderChart('branchChart', branchScores, avgScore);
 
             } else {
-                // User Dashboard
                 document.getElementById('user-stat-submitted').textContent = submittedCount;
                 document.getElementById('user-stat-avg').textContent = avgScore;
                 renderChart('userBranchChart', branchScores, avgScore);
@@ -193,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return (sum / scores.length).toFixed(2);
         });
 
-        // Color Logic: Green if >= Avg, Orange if < Avg
         const bgColors = data.map(score => parseFloat(score) >= parseFloat(globalAvg) ? 'rgba(34, 197, 94, 0.7)' : 'rgba(249, 115, 22, 0.7)');
         const borderColors = data.map(score => parseFloat(score) >= parseFloat(globalAvg) ? 'rgba(34, 197, 94, 1)' : 'rgba(249, 115, 22, 1)');
 
@@ -254,13 +256,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (users[loggedInUser].role === 'admin') {
                 adminWelcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName}`;
                 loadAdminContent();
-                loadDashboard('admin'); // Load Admin Dashboard
+                loadDashboard('admin');
                 showPage('admin-page');
             } else {
                 welcomeMessage.textContent = `ยินดีต้อนรับ ${userDisplayName}`;
                 displayUserName.textContent = userDisplayName;
                 loadUserContent();
-                loadDashboard('user'); // Load User Dashboard
+                loadDashboard('user');
                 showPage('user-page');
             }
         } else {
@@ -268,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- CONTENT LOADERS ---
+    // --- CONTENT LOADERS (UPDATED FOR XXX REPLACEMENT) ---
     async function loadUserContent() {
         try {
             const response = await fetch(LINKS_GOOGLE_SHEET_URL);
@@ -286,10 +288,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderLinks(videoList, videoLinks, 'video');
+            
+            // --- จุดสำคัญที่แก้: ปุ่มเริ่มทำแบบทดสอบ ---
             takeQuizButton.onclick = () => {
-                if (quizLinks.length > 0) window.open(quizLinks[0], '_blank');
-                else alert('ยังไม่มีแบบทดสอบประจำเดือนนี้');
+                if (quizLinks.length > 0) {
+                    let link = quizLinks[0];
+                    // ถ้าเจอคำว่า XXX ให้แทนที่ด้วยชื่อจริงของ User ทันที
+                    if (link.includes('XXX')) {
+                        // encodeURIComponent จำเป็นมากสำหรับภาษาไทยใน URL
+                        link = link.replace('XXX', encodeURIComponent(users[loggedInUser].name));
+                    }
+                    window.open(link, '_blank');
+                } else {
+                    alert('ยังไม่มีแบบทดสอบประจำเดือนนี้');
+                }
             };
+
         } catch (error) { console.error(error); }
     }
 
