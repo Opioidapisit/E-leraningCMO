@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบเรียนรู้ด้วยตัวเอง ร้านยา คลินิคยา มอ ออ จังหวัดตรัง</title>
+    <title>ระบบเรียนรู้ด้วยตัวเอง - ร้านยาคลินิคยา มอ ออ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,147 +11,174 @@
 </head>
 <body>
     
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-area">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <div class="header-text">
+                    <h1>ระบบเรียนรู้ด้วยตัวเอง</h1>
+                    <span class="sub-header">ร้านยาคลินิคยา มอ ออ (Self-Learning System)</span>
+                </div>
+            </div>
+            <div id="header-date" class="header-date"></div>
+        </div>
+    </header>
 
-    <div class="container fade-in" id="login-page">
-        <div class="header-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-        <h1>ระบบเรียนรู้ด้วยตัวเอง <br><span>ร้านยาคลินิคยา มอ ออ</span></h1>
-        <p class="subtitle">ยินดีต้อนรับสู่การเรียนรู้เพื่อพัฒนาตัวเองอย่างต่อเนื่อง</p>
+    <div class="page-wrapper fade-in" id="login-page">
+        <div class="login-card">
+            <h2>เข้าสู่ระบบ</h2>
+            <p class="subtitle">กรุณาล็อกอินเพื่อเข้าใช้งานระบบ</p>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label>ชื่อผู้ใช้งาน</label>
+                    <input type="text" id="username" placeholder="ระบุชื่อผู้ใช้งาน" required>
+                </div>
+                <div class="input-group">
+                    <label>รหัสผ่าน</label>
+                    <input type="password" id="password" placeholder="ระบุรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn-primary">เข้าสู่ระบบ</button>
+                <div id="login-error" class="error-message"></div>
+            </form>
+            <p id="loading-text" class="info-text" style="margin-top:10px; display:none;">กำลังโหลดข้อมูลผู้ใช้งาน...</p>
+        </div>
+    </div>
+
+    <div class="main-container hidden fade-in" id="main-app">
         
-        <form id="login-form">
-            <div class="input-group">
-                <label for="username"><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน</label>
-                <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้งาน..." required>
-            </div>
-            <div class="input-group">
-                <label for="password"><i class="fa-solid fa-lock"></i> รหัสผ่าน</label>
-                <input type="password" id="password" placeholder="กรอกรหัสผ่าน..." required>
-            </div>
-            <button type="submit" class="btn-primary">เข้าสู่ระบบ <i class="fa-solid fa-arrow-right"></i></button>
-            <div id="login-error" class="error-message"></div>
-        </form>
-    </div>
-
-    <div class="container hidden fade-in" id="user-page">
-        <div class="profile-header">
-            <div class="avatar"><i class="fa-solid fa-user-circle"></i></div>
-            <h2 id="welcome-message">ยินดีต้อนรับ</h2>
-        </div>
-
-        <div class="card section highlight-card">
-            <h3><i class="fa-solid fa-trophy"></i> อันดับสาขาประจำเดือน</h3>
-            <div class="chart-container" style="height: 220px;">
-                <canvas id="userBranchChart"></canvas>
-            </div>
-            <div class="mini-stats">
-                 <p><i class="fa-solid fa-users"></i> ทำแบบทดสอบแล้ว: <strong id="user-stat-submitted">0</strong> คน</p>
-                 <p><i class="fa-solid fa-star"></i> คะแนนเฉลี่ยรวม: <strong id="user-stat-avg">0.0</strong></p>
-            </div>
-        </div>
-
-        <div class="grid-container">
-            <div class="card section">
-                <h3><i class="fa-solid fa-video"></i> คลิปวิดีโอประจำเดือน</h3>
-                <div id="video-list" class="list-container"></div>
-            </div>
-
-            <div class="card section">
-                <h3><i class="fa-solid fa-clipboard-question"></i> แบบทดสอบ</h3>
-                <p class="desc">ทดสอบความรู้ประจำเดือนนี้</p>
-                <button id="take-quiz-button" class="action-button btn-gradient">เริ่มทำแบบทดสอบ <i class="fa-solid fa-play"></i></button>
-            </div>
-
-            <div class="card section">
-                <h3><i class="fa-solid fa-chart-line"></i> ตรวจสอบคะแนน</h3>
-                <button id="check-score-button" class="action-button btn-outline">ดูผลคะแนนของคุณ</button>
-                
-                <div id="score-display" class="score-box hidden">
-                    <div class="score-item">
-                        <span class="label">ชื่อผู้ใช้งาน</span>
-                        <span class="value" id="display-user-name">-</span>
-                    </div>
-                    <div class="score-item">
-                        <span class="label">คะแนนที่ได้</span>
-                        <span class="value highlight" id="display-score">-</span>
-                    </div>
-                    <div class="score-item">
-                        <span class="label">สถานะ</span>
-                        <span class="value badge" id="display-status">-</span>
+        <div id="user-view" class="hidden">
+            <div class="welcome-banner">
+                <div class="user-info">
+                    <i class="fa-solid fa-user-circle avatar"></i>
+                    <div>
+                        <h2 id="welcome-message">สวัสดี</h2>
+                        <span class="role-badge">พนักงาน</span>
                     </div>
                 </div>
-                <div id="score-error" class="error-message"></div>
+                <button id="logout-button-user" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
             </div>
-        </div>
 
-        <button id="logout-button-user" class="logout-button"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
-    </div>
-
-    <div class="container hidden fade-in" id="admin-page">
-        <div class="header-icon admin-icon"><i class="fa-solid fa-user-gear"></i></div>
-        <h1 id="admin-page-title">ส่วนจัดการระบบ (Admin)</h1>
-        <h2 id="admin-welcome-message"></h2>
-
-        <div class="card section">
-            <h3><i class="fa-solid fa-chart-pie"></i> ภาพรวมประจำเดือน</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-label">ทำแบบทดสอบแล้ว</span>
-                        <span class="stat-value" id="stat-submitted">0/0</span>
+            <div class="content-grid">
+                <div class="col-left">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-trophy"></i> อันดับสาขาประจำเดือนนี้
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="userBranchChart"></canvas>
+                            </div>
+                            <div class="mini-stats">
+                                <div class="stat-item">
+                                    <span class="lbl">เพื่อนที่ทำแล้ว</span>
+                                    <span class="val" id="user-stat-submitted">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="lbl">คะแนนเฉลี่ยรวม</span>
+                                    <span class="val" id="user-stat-avg">0.0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-label">คะแนนเฉลี่ย</span>
-                        <span class="stat-value" id="stat-avg-score">0.0</span>
+
+                <div class="col-right">
+                    <div class="card">
+                        <div class="card-header"><i class="fa-solid fa-video"></i> คลิปวิดีโอประจำเดือน</div>
+                        <div class="card-body" id="video-list"></div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-label">ยังไม่ทำ</span>
-                        <span class="stat-value" id="stat-pending">0</span>
+
+                    <div class="card">
+                        <div class="card-header"><i class="fa-solid fa-clipboard-question"></i> แบบทดสอบ</div>
+                        <div class="card-body">
+                            <p class="desc-text">กรุณาดูคลิปวิดีโอให้จบก่อนเริ่มทำแบบทดสอบ</p>
+                            <button id="take-quiz-button" class="btn-action green">เริ่มทำแบบทดสอบ <i class="fa-solid fa-play"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><i class="fa-solid fa-chart-line"></i> ผลคะแนนของคุณ (เดือนนี้)</div>
+                        <div class="card-body">
+                            <button id="check-score-button" class="btn-action outline">ตรวจสอบคะแนนล่าสุด</button>
+                            
+                            <div id="score-display" class="result-box hidden">
+                                <div class="result-row">
+                                    <span>คะแนนที่ได้:</span>
+                                    <strong id="display-score" class="score-val">-</strong>
+                                </div>
+                                <div class="result-row">
+                                    <span>สถานะ:</span>
+                                    <span id="display-status" class="status-badge">-</span>
+                                </div>
+                            </div>
+                            <div id="score-error" class="error-message"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="branchChart"></canvas>
+        </div>
+
+        <div id="admin-view" class="hidden">
+            <div class="welcome-banner">
+                <div class="user-info">
+                    <i class="fa-solid fa-user-gear avatar admin"></i>
+                    <div>
+                        <h2 id="admin-welcome-message">ผู้ดูแลระบบ</h2>
+                        <span class="role-badge admin">Admin</span>
+                    </div>
+                </div>
+                <button id="logout-button-admin" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+            </div>
+
+            <div class="content-grid">
+                <div class="card full-width">
+                    <div class="card-header"><i class="fa-solid fa-chart-pie"></i> ภาพรวมประจำเดือนนี้</div>
+                    <div class="card-body">
+                        <div class="stats-overview">
+                            <div class="stat-box">
+                                <span class="label">ส่งงานแล้ว</span>
+                                <span class="number" id="stat-submitted">0</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="label">คะแนนเฉลี่ย</span>
+                                <span class="number" id="stat-avg-score">0.0</span>
+                            </div>
+                            <div class="stat-box warning">
+                                <span class="label">ยังไม่ทำ</span>
+                                <span class="number" id="stat-pending">0</span>
+                            </div>
+                        </div>
+                        <div class="chart-container large">
+                            <canvas id="branchChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="fa-solid fa-user-clock"></i> ยังไม่ทำแบบทดสอบ</div>
+                    <div class="card-body scrollable">
+                        <ul id="pending-user-list" class="simple-list"></ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="fa-brands fa-google-drive"></i> จัดการเนื้อหา</div>
+                    <div class="card-body">
+                        <div class="content-links">
+                            <h4>วิดีโอปัจจุบัน</h4>
+                            <ul id="admin-video-list" class="simple-list"></ul>
+                            <h4 style="margin-top:15px;">แบบทดสอบปัจจุบัน</h4>
+                            <ul id="admin-quiz-list" class="simple-list"></ul>
+                        </div>
+                        <button id="view-all-results-button" class="btn-action blue" style="margin-top:15px;">
+                            <i class="fa-solid fa-table"></i> ดูผลสอบทั้งหมดใน Sheet
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card section">
-            <h3><i class="fa-solid fa-user-clock"></i> พนักงานที่ยังไม่ทำแบบทดสอบ</h3>
-            <ul id="pending-user-list" class="pending-list"></ul>
-        </div>
-
-        <div class="card section">
-            <h3><i class="fa-brands fa-google-drive"></i> จัดการเนื้อหา</h3>
-            <p class="info-text">จัดการลิงก์วิดีโอและแบบทดสอบผ่าน Google Sheet</p>
-            <div class="admin-lists">
-                <div class="list-group">
-                    <h4>วิดีโอปัจจุบัน</h4>
-                    <ul id="admin-video-list"></ul>
-                </div>
-                <div class="list-group">
-                    <h4>แบบทดสอบปัจจุบัน</h4>
-                    <ul id="admin-quiz-list"></ul>
-                </div>
-            </div>
-        </div>
-
-        <div style="display:none;">
-            <input type="text" id="video-link-input"><button id="add-video-link-button"></button>
-            <input type="text" id="quiz-link-input"><button id="add-quiz-link-button"></button>
-        </div>
-
-        <div class="section">
-            <button id="view-all-results-button" class="action-button btn-primary"><i class="fa-solid fa-table-list"></i> ดูผลสอบทั้งหมดใน Sheet</button>
-        </div>
-
-        <button id="logout-button-admin" class="logout-button"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
     </div>
 
     <script src="script.js"></script>
