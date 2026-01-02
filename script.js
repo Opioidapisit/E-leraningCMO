@@ -1,16 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Configuration (ต้องแก้ตรงนี้) ---
-    const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI'; // ID เดิม
-    const LINKS_GID = '1566756560'; 
-    const SCORES_GID = '441233492';
+    // --- Configuration ---
+    const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI'; 
     
-    // *** สำคัญ: ต้องสร้าง Tab ใหม่ชื่อ Users และเอา GID มาใส่ตรงนี้ ***
-    const USERS_GID = '992216903'; // <--- เปลี่ยนเลขนี้เป็น GID ของ Tab "Users" ที่สร้างใหม่ (ถ้าเป็น Tab แรกสุดมักจะเป็น 0)
+    // *** GIDs ***
+    const USERS_GID = '992216903';   // GID สำหรับรายชื่อพนักงาน (ตามที่คุณแจ้ง)
+    const LINKS_GID = '1566756560';  // GID สำหรับลิงก์ Video/Quiz
+    const SCORES_GID = '441233492';  // GID สำหรับผลคะแนน
 
     const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=`;
 
     // --- State ---
-    let usersData = {}; // จะถูกเติมข้อมูลจาก Sheet
+    let usersData = {}; 
     let loggedInUser = null;
 
     // --- DOM Elements ---
@@ -33,20 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDate() {
         const now = new Date();
         const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-        // แปลงปี ค.ศ. เป็น พ.ศ. แบบง่ายๆ
-        const dateStr = now.toLocaleDateString('th-TH', options);
-        headerDate.textContent = dateStr;
+        headerDate.textContent = now.toLocaleDateString('th-TH', options);
     }
 
     async function initSystem() {
-        // โหลดข้อมูล User ก่อนอนุญาตให้ล็อกอิน
         loadingText.style.display = 'block';
         const success = await loadUsers();
         loadingText.style.display = 'none';
         
         if (!success) {
-            loginError.textContent = 'ไม่สามารถเชื่อมต่อฐานข้อมูลผู้ใช้งานได้ กรุณาติดต่อ Admin';
-            document.querySelector('button[type="submit"]').disabled = true;
+            loginError.innerHTML = 'ไม่สามารถดึงข้อมูลรายชื่อพนักงานได้ <br>กรุณาตรวจสอบ GID ของแท็บ Users';
         }
     }
 
@@ -68,62 +64,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- Helper: Date Filter (Month Logic) ---
+    // --- Helper: Monthly Filter ---
     function isCurrentMonth(timestampStr) {
         if (!timestampStr) return false;
-        
-        const now = new Date();
-        const currentMonth = now.getMonth() + 1; // 1-12
-        const currentYear = now.getFullYear();   // 2026
-        
-        // รูปแบบวันที่ Google Sheet: d/M/yyyy H:m:s (เช่น 2/1/2026 10:00:00) 
-        // หรืออาจจะส่งมาเป็น 2/1/2569 (พ.ศ.)
-        
-        // วิธีที่ง่ายที่สุดและปลอดภัยคือเช็ค String Match (เพราะ Format ค่อนข้างตายตัวจาก Forms)
-        // สร้าง String ที่จะค้นหา เช่น "/1/2026" หรือ "/01/2026"
-        
-        // แต่เพื่อความชัวร์ เราจะ Parse ตัวเลขออกมา
         try {
-            const datePart = timestampStr.split(' ')[0]; // เอาเฉพาะวันที่ ตัดเวลาทิ้ง
-            const parts = datePart.split('/'); // [d, M, yyyy]
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+            
+            // Format Timestamp มักจะเป็น "d/m/yyyy H:M:S" หรือ "d/m/yyyy"
+            const datePart = timestampStr.split(' ')[0];
+            const parts = datePart.split('/');
             
             if (parts.length < 3) return false;
             
             let m = parseInt(parts[1]);
             let y = parseInt(parts[2]);
             
-            // แปลง พ.ศ. เป็น ค.ศ. ถ้าปีมากกว่า 2400
-            if (y > 2400) y -= 543;
+            // แก้ไขเรื่อง พ.ศ. (ถ้าปีมากกว่า 2400 ให้ลบ 543)
+            if (y > 2400) y -= 543; 
             
             return (m === currentMonth && y === currentYear);
         } catch (e) {
-            console.error("Date parse error:", timestampStr, e);
+            console.error("Date parse error:", e);
             return false;
         }
     }
 
-    // --- Core: Load Users from Sheet ---
+    // --- Load Users (From Sheet 992216903) ---
     async function loadUsers() {
         try {
             const response = await fetch(BASE_URL + USERS_GID);
-            if (!response.ok) throw new Error('Network response was not ok');
             const text = await response.text();
             const rows = parseCSV(text);
             
-            // สมมติ Row 1 คือ Header: Username, Password, Name, Role
-            // เริ่ม loop ที่ i=1
-            usersData = {}; // Reset
+            usersData = {}; 
+            // เริ่ม loop ที่ i=1 (ข้าม header)
             for (let i = 1; i < rows.length; i++) {
+                // คาดหวัง Col A=Username, B=Password, C=Name, D=Role
                 const [user, pass, name, role] = rows[i];
                 if (user && pass) {
                     usersData[user.trim()] = {
                         password: pass.trim(),
                         name: name.trim(),
-                        role: role.trim().toLowerCase()
+                        role: role ? role.trim().toLowerCase() : 'user'
                     };
                 }
             }
-            console.log("Users loaded:", Object.keys(usersData).length);
+            console.log("Loaded Users:", Object.keys(usersData).length);
             return true;
         } catch (error) {
             console.error("Failed to load users:", error);
@@ -141,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loggedInUser = u;
             loginError.textContent = '';
             
-            // UI Transition
+            // Transition
             loginPage.classList.add('hidden');
             mainApp.classList.remove('hidden');
             
@@ -150,17 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userData.role === 'admin') {
                 userView.classList.add('hidden');
                 adminView.classList.remove('hidden');
-                document.getElementById('admin-welcome-message').textContent = `ยินดีต้อนรับ, ${userData.name}`;
-                loadAdminContent(); // Function เดิม แต่เรียก Dashboard ด้วย
+                document.getElementById('admin-welcome-message').textContent = `ผู้ดูแลระบบ (${userData.name})`;
+                loadAdminContent();
             } else {
                 adminView.classList.add('hidden');
                 userView.classList.remove('hidden');
                 document.getElementById('welcome-message').textContent = `สวัสดีคุณ ${userData.name}`;
-                document.getElementById('display-user-name').textContent = userData.name;
+                // แก้ Error เดิม: ไม่เรียก display-user-name แล้ว
                 loadUserContent();
             }
             
-            // Load Dashboard (Shared Logic)
+            // โหลด Dashboard โดยส่ง Role เข้าไป
             loadDashboard(userData.role);
 
         } else {
@@ -168,53 +156,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Content Loading (Links) ---
-    // --- แก้ไขฟังก์ชันนี้ใน script.js ---
-    // --- แก้ไขฟังก์ชันนี้ (ฉบับระบุคอลัมน์ตรงๆ ไม่ง้อชื่อหัวตาราง) ---
+    // --- Fetch Links (Hardcode Column B & C) ---
     async function fetchLinks() {
-        console.log("Fetching links from GID:", LINKS_GID); // เช็คว่า GID ถูกมั้ย
-
         try {
             const response = await fetch(BASE_URL + LINKS_GID);
             const text = await response.text();
-            
-            console.log("Raw CSV Response:", text.substring(0, 100) + "..."); // ดูหน้าตาข้อมูลที่ได้
-
             const rows = parseCSV(text);
-
-            if (rows.length < 2) {
-                console.warn("Sheet seems empty or has only header.");
-                return { vLinks: [], qLinks: [] };
-            }
 
             const vLinks = [];
             const qLinks = [];
 
-            // เริ่มวนลูปตั้งแต่แถวที่ 2 (index 1) เพื่อข้ามหัวตาราง
+            // เริ่มแถวที่ 2 (index 1)
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
-                
-                // เราจะดึงข้อมูลจาก Column B (index 1) และ Column C (index 2) ตรงๆ เลยครับ
-                // Row format: [Col A, Col B, Col C, ...]
-                
-                // ดึง Video จาก Column B (หรือช่องที่ 2)
+                // ดึง Col B (index 1) เป็น Video
                 const videoCell = row[1]; 
-                if (videoCell && videoCell.trim() !== '' && videoCell.includes('http')) {
-                    vLinks.push(videoCell.trim());
-                }
-
-                // ดึง Quiz จาก Column C (หรือช่องที่ 3)
+                // ดึง Col C (index 2) เป็น Quiz
                 const quizCell = row[2];
-                if (quizCell && quizCell.trim() !== '' && quizCell.includes('http')) {
-                    qLinks.push(quizCell.trim());
-                }
-            }
-            
-            console.log(`Success! Found Videos: ${vLinks.length}, Quizzes: ${qLinks.length}`);
-            return { vLinks, qLinks };
 
+                if (videoCell && videoCell.includes('http')) vLinks.push(videoCell.trim());
+                if (quizCell && quizCell.includes('http')) qLinks.push(quizCell.trim());
+            }
+            return { vLinks, qLinks };
         } catch (e) {
-            console.error("Critical Error fetching links:", e);
+            console.error("Link Error:", e);
             return { vLinks: [], qLinks: [] };
         }
     }
@@ -229,7 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = type === 'video' ? 'video-item' : 'quiz-item';
             
-            // Replace XXX Logic
+            // --- Logic XXX Replacement สำหรับแสดงผล (ถ้าต้องการ) ---
+            // ปกติเราเปลี่ยนตอนกดปุ่มใหญ่ แต่ถ้าจะเปลี่ยนในลิสต์ด้วยก็ทำได้
             let finalLink = link;
             if (type === 'quiz' && loggedInUser && link.includes('XXX')) {
                  finalLink = link.replace('XXX', encodeURIComponent(usersData[loggedInUser].name));
@@ -247,12 +213,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const { vLinks, qLinks } = await fetchLinks();
         renderList(document.getElementById('video-list'), vLinks, 'video');
         
-        // Setup Big Button
+        // --- Logic ปุ่มเริ่มทำแบบทดสอบ (XXX Replacement) ---
         const btn = document.getElementById('take-quiz-button');
         btn.onclick = () => {
             if (qLinks.length > 0) {
                 let link = qLinks[0];
-                if (link.includes('XXX')) link = link.replace('XXX', encodeURIComponent(usersData[loggedInUser].name));
+                // ค้นหา XXX แล้วแทนที่ด้วยชื่อจริง
+                if (link.includes('XXX')) {
+                    link = link.replace('XXX', encodeURIComponent(usersData[loggedInUser].name));
+                }
                 window.open(link, '_blank');
             } else {
                 alert('ยังไม่มีแบบทดสอบ');
@@ -266,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList(document.getElementById('admin-quiz-list'), qLinks, 'quiz');
     }
 
-    // --- Dashboard & Scoring Logic (With Month Filter) ---
+    // --- Dashboard & Scoring (With Monthly Filter) ---
     async function loadDashboard(role) {
         try {
             const response = await fetch(BASE_URL + SCORES_GID);
@@ -274,33 +243,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = parseCSV(text);
             
             const headers = rows[0].map(h => h.trim());
-            const userCol = headers.indexOf('User');   // ต้องตรงกับใน Sheet
-            const scoreCol = headers.indexOf('คะแนน'); // ต้องตรงกับใน Sheet
-            const timeCol = headers.indexOf('Timestamp'); // หรือ 'ประทับเวลา'
+            
+            // หา Index (พยายามหาให้เจอ)
+            let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อผู้ใช้งาน') || h.includes('ผู้ประเมิน'));
+            let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
+            let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
 
-            // Data Containers
+            // Fallback
+            if (userCol === -1) userCol = 3; 
+            if (scoreCol === -1) scoreCol = 2; 
+            if (timeCol === -1) timeCol = 0; 
+
             const branchScores = {};
             const submittedUsers = new Set();
             let totalScore = 0;
             let count = 0;
 
-            // Loop Data Rows
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 const timestamp = row[timeCol];
                 const uName = row[userCol];
                 const score = parseFloat(row[scoreCol]);
 
-                // *** CRITICAL: Filter by Current Month ***
+                // *** กรองเดือนปัจจุบันตรงนี้ ***
                 if (isCurrentMonth(timestamp) && uName && !isNaN(score)) {
-                    // Check duplicate (เอาคะแนนล่าสุด หรือนับครั้งแรก แล้วแต่นโยบาย)
-                    // ในที่นี้เรานับหมด แต่ถ้าจะเอารายคน ต้องเช็ค Set
                     if (!submittedUsers.has(uName)) {
                         submittedUsers.add(uName);
                         count++;
                         totalScore += score;
 
-                        // Branch Logic (จากชื่อ "Name สาขาBranch")
                         const parts = uName.split(' สาขา');
                         if (parts.length > 1) {
                             const branch = 'สาขา' + parts[1];
@@ -315,24 +286,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const allStaffCount = Object.values(usersData).filter(u => u.role !== 'admin').length;
 
             if (role === 'admin') {
-                // Update Admin Stats
                 document.getElementById('stat-submitted').textContent = `${count}/${allStaffCount}`;
                 document.getElementById('stat-avg-score').textContent = avg;
                 document.getElementById('stat-pending').textContent = allStaffCount - count;
 
-                // Pending List
                 const list = document.getElementById('pending-user-list');
                 list.innerHTML = '';
                 Object.values(usersData).forEach(u => {
                     if (u.role !== 'admin' && !submittedUsers.has(u.name)) {
                         const li = document.createElement('li');
-                        li.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:orange; margin-right:5px;"></i> ${u.name}`;
+                        li.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:orange;"></i> ${u.name}`;
                         list.appendChild(li);
                     }
                 });
                 renderChart('branchChart', branchScores, avg);
             } else {
-                // Update User Stats
                 document.getElementById('user-stat-submitted').textContent = count;
                 document.getElementById('user-stat-avg').textContent = avg;
                 renderChart('userBranchChart', branchScores, avg);
@@ -343,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Check Personal Score (Month Filtered) ---
     document.getElementById('check-score-button').addEventListener('click', async () => {
         const errorDiv = document.getElementById('score-error');
         const displayDiv = document.getElementById('score-display');
@@ -359,28 +326,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = parseCSV(text);
             const headers = rows[0].map(h => h.trim());
             
-            const userCol = headers.indexOf('User');
-            const scoreCol = headers.indexOf('คะแนน');
-            const statusCol = headers.indexOf('Status'); // หรือ 'สถานะ'
-            const timeCol = headers.indexOf('Timestamp');
+            let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อ'));
+            let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
+            let statusCol = headers.findIndex(h => h.includes('Status') || h.includes('สถานะ'));
+            let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
+            
+            if (userCol === -1) userCol = 3; 
+            if (scoreCol === -1) scoreCol = 2;
+            if (statusCol === -1) statusCol = rows[0].length - 1; 
+            if (timeCol === -1) timeCol = 0;
 
             const myName = usersData[loggedInUser].name;
             let found = false;
 
-            // ค้นหาจากล่างขึ้นบน (คะแนนล่าสุด)
+            // ค้นหาจากล่างขึ้นบน (ล่าสุด) และต้องเป็นเดือนปัจจุบัน
             for (let i = rows.length - 1; i > 0; i--) {
                 const row = rows[i];
                 if (row[userCol] === myName && isCurrentMonth(row[timeCol])) {
                     scoreVal.textContent = row[scoreCol];
-                    statusVal.textContent = row[statusCol] || 'ตรวจแล้ว';
+                    statusVal.textContent = row[statusCol] || 'ส่งแล้ว';
                     
-                    // Style status badge
                     if(row[statusCol] && row[statusCol].includes('ตก')) {
-                         statusVal.style.background = '#f8d7da';
-                         statusVal.style.color = '#721c24';
+                         statusVal.style.background = '#fef2f2';
+                         statusVal.style.color = '#dc2626';
                     } else {
-                         statusVal.style.background = '#d1e7dd';
-                         statusVal.style.color = '#0f5132';
+                         statusVal.style.background = '#dcfce7';
+                         statusVal.style.color = '#166534';
                     }
 
                     displayDiv.classList.remove('hidden');
@@ -389,16 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (!found) {
-                errorDiv.textContent = 'ไม่พบผลคะแนนของเดือนนี้ กรุณาทำแบบทดสอบก่อน';
-            }
+            if (!found) errorDiv.textContent = 'ไม่พบผลคะแนนของเดือนนี้';
 
         } catch (e) {
             errorDiv.textContent = 'เกิดข้อผิดพลาดในการดึงข้อมูล';
         }
     });
 
-    // --- Chart Renderer ---
     function renderChart(canvasId, dataObj, avg) {
         const ctxEl = document.getElementById(canvasId);
         if(!ctxEl) return;
@@ -409,8 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return (arr.reduce((a,b)=>a+b,0) / arr.length).toFixed(2);
         });
 
-        // Colors
-        const bgColors = dataVals.map(v => parseFloat(v) >= parseFloat(avg) ? '#198754' : '#fd7e14'); // Green / Orange
+        const bgColors = dataVals.map(v => parseFloat(v) >= parseFloat(avg) ? '#10b981' : '#f59e0b');
 
         if (window[canvasId] instanceof Chart) window[canvasId].destroy();
 
@@ -429,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
                     x: { grid: { display: false } }
                 },
                 plugins: {
@@ -440,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Logout ---
     const logout = () => {
         loggedInUser = null;
         userView.classList.add('hidden');
@@ -449,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loginPage.classList.remove('hidden');
         usernameInput.value = '';
         passwordInput.value = '';
-        // Reload users in case sheet changed
         loadUsers(); 
     };
 
