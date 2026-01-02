@@ -170,52 +170,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Content Loading (Links) ---
     // --- แก้ไขฟังก์ชันนี้ใน script.js ---
+    // --- แก้ไขฟังก์ชันนี้ (ฉบับระบุคอลัมน์ตรงๆ ไม่ง้อชื่อหัวตาราง) ---
     async function fetchLinks() {
+        console.log("Fetching links from GID:", LINKS_GID); // เช็คว่า GID ถูกมั้ย
+
         try {
-            // ตรวจสอบว่า LINKS_GID ตรงกับแท็บที่เก็บลิงก์จริงๆ
             const response = await fetch(BASE_URL + LINKS_GID);
             const text = await response.text();
+            
+            console.log("Raw CSV Response:", text.substring(0, 100) + "..."); // ดูหน้าตาข้อมูลที่ได้
+
             const rows = parseCSV(text);
 
-            if (rows.length === 0) return { vLinks: [], qLinks: [] };
-
-            // --- ส่วนที่เพิ่มใหม่: ค้นหาคอลัมน์อัตโนมัติจากชื่อหัวตาราง ---
-            // แปลงหัวตารางเป็นตัวพิมพ์เล็กเพื่อหาได้ง่ายขึ้น
-            const headers = rows[0].map(h => h.trim().toLowerCase());
-            
-            // ค้นหาว่าคอลัมน์ไหนคือ "Video Link" และ "Quiz Link"
-            // (ระบบจะหาคำว่า "video" หรือ "link" ในหัวตาราง)
-            let vIndex = headers.indexOf('video link'); 
-            let qIndex = headers.indexOf('quiz link');
-
-            // ถ้าหาชื่อเป๊ะๆ ไม่เจอ ให้ลองหาแบบคลุมเครือ (เผื่อคุณพิมพ์แค่ Video หรือ Quiz)
-            if (vIndex === -1) vIndex = headers.findIndex(h => h.includes('video') || h.includes('วิดีโอ'));
-            if (qIndex === -1) qIndex = headers.findIndex(h => h.includes('quiz') || h.includes('แบบทดสอบ') || h.includes('สอบ'));
-
-            // Fallback: ถ้ายังหาไม่เจอจริงๆ ให้ใช้ค่าเดิม (Col B=1, Col C=2)
-            if (vIndex === -1 && rows[0].length > 1) vIndex = 1;
-            if (qIndex === -1 && rows[0].length > 2) qIndex = 2;
+            if (rows.length < 2) {
+                console.warn("Sheet seems empty or has only header.");
+                return { vLinks: [], qLinks: [] };
+            }
 
             const vLinks = [];
             const qLinks = [];
 
-            // เริ่มดึงข้อมูล
+            // เริ่มวนลูปตั้งแต่แถวที่ 2 (index 1) เพื่อข้ามหัวตาราง
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
-                // เช็คว่ามีข้อมูลในช่องนั้นไหมก่อนดึงมา
-                if (vIndex > -1 && row[vIndex] && row[vIndex].trim() !== '') {
-                    vLinks.push(row[vIndex].trim());
+                
+                // เราจะดึงข้อมูลจาก Column B (index 1) และ Column C (index 2) ตรงๆ เลยครับ
+                // Row format: [Col A, Col B, Col C, ...]
+                
+                // ดึง Video จาก Column B (หรือช่องที่ 2)
+                const videoCell = row[1]; 
+                if (videoCell && videoCell.trim() !== '' && videoCell.includes('http')) {
+                    vLinks.push(videoCell.trim());
                 }
-                if (qIndex > -1 && row[qIndex] && row[qIndex].trim() !== '') {
-                    qLinks.push(row[qIndex].trim());
+
+                // ดึง Quiz จาก Column C (หรือช่องที่ 3)
+                const quizCell = row[2];
+                if (quizCell && quizCell.trim() !== '' && quizCell.includes('http')) {
+                    qLinks.push(quizCell.trim());
                 }
             }
             
-            console.log(`Found Videos: ${vLinks.length}, Quizzes: ${qLinks.length}`); // ดูใน Console ว่าเจอกี่อัน
+            console.log(`Success! Found Videos: ${vLinks.length}, Quizzes: ${qLinks.length}`);
             return { vLinks, qLinks };
 
         } catch (e) {
-            console.error("Error fetching links:", e);
+            console.error("Critical Error fetching links:", e);
             return { vLinks: [], qLinks: [] };
         }
     }
