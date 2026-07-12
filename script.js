@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const SHEET_ID = '1zlybKBVi9sQ4NOBAXK7_0gxmDS6wS-fRytLnjHX_ZQI'; 
     
     // *** GIDs ***
-    const USERS_GID = '992216903';   // GID สำหรับรายชื่อพนักงาน (ตามที่คุณแจ้ง)
-    const LINKS_GID = '1566756560';  // GID สำหรับลิงก์ Video/Quiz (คอลัมน์ D = ลิงก์ Pretest)
-    const SCORES_GID = '441233492';  // GID สำหรับผลคะแนนแบบทดสอบ (หลังเรียน)
+    const USERS_GID = '1625747611';   // GID สำหรับรายชื่อพนักงาน (ตามที่คุณแจ้ง)
+    const LINKS_GID = '1591330230';  // GID สำหรับลิงก์ Video/Quiz (คอลัมน์ D = ลิงก์ Pretest)
+    const SCORES_GID = '997924042';  // GID สำหรับผลคะแนนแบบทดสอบ (หลังเรียน)
 
     // *** TODO: ใส่ GID ของแท็บผลตอบกลับ Pretest (จาก Google Form Pretest ที่แยกต่างหาก) ***
-    const PRETEST_SCORES_GID = '441233492';
+    const PRETEST_SCORES_GID = '997924042';
 
     // เกณฑ์ผ่าน Pretest (คะแนนเต็ม 10)
     const PRETEST_PASS_SCORE = 8;
