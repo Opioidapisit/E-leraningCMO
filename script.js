@@ -97,6 +97,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Helper: แปลง Timestamp จากชีท ("d/m/yyyy H:M:S") เป็น JS Date ---
+    function parseSheetDate(timestampStr) {
+        if (!timestampStr) return null;
+        try {
+            const [datePart, timePart] = timestampStr.split(' ');
+            const parts = datePart.split('/');
+            if (parts.length < 3) return null;
+
+            const d = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+            let y = parseInt(parts[2]);
+            if (y > 2400) y -= 543; // แปลง พ.ศ. -> ค.ศ.
+
+            let h = 0, mi = 0, s = 0;
+            if (timePart) {
+                const t = timePart.split(':');
+                h = parseInt(t[0]) || 0;
+                mi = parseInt(t[1]) || 0;
+                s = parseInt(t[2]) || 0;
+            }
+            return new Date(y, m - 1, d, h, mi, s);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // --- Helper: ช่วงสัปดาห์ปัจจุบัน (จันทร์ - อาทิตย์) ---
+    function getCurrentWeekRange() {
+        const now = new Date();
+        const day = now.getDay(); // 0=อาทิตย์ .. 6=เสาร์
+        const diffToMonday = (day === 0 ? -6 : 1) - day;
+
+        const monday = new Date(now);
+        monday.setHours(0, 0, 0, 0);
+        monday.setDate(now.getDate() + diffToMonday);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        return { start: monday, end: sunday };
+    }
+
+    // --- Helper: Weekly Filter (จันทร์ - อาทิตย์ ของสัปดาห์นี้) ---
+    function isCurrentWeek(timestampStr) {
+        const date = parseSheetDate(timestampStr);
+        if (!date) return false;
+        const { start, end } = getCurrentWeekRange();
+        return date >= start && date <= end;
+    }
+
     // --- Load Users (From Sheet 1625747611) ---
     async function loadUsers() {
         try {
@@ -156,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // โหลด Dashboard โดยส่ง Role เข้าไป
             loadDashboard(userData.role);
+            loadWeeklyRankings(userData.role);
 
         } else {
             loginError.textContent = 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง';
@@ -380,6 +432,73 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList(document.getElementById('admin-pretest-list'), pLinks, 'pretest');
         renderList(document.getElementById('admin-video-list'), vLinks, 'video');
         renderList(document.getElementById('admin-quiz-list'), qLinks, 'quiz');
+    }
+
+    // --- คำนวณคะแนนเฉลี่ยแยกตามสาขา จากแท็บคะแนนใดๆ โดยกรองด้วยเงื่อนไขที่กำหนด ---
+    // filterFn รับค่า timestamp string ของแต่ละแถว แล้วคืนค่า true/false ว่าจะนับแถวนั้นหรือไม่
+    async function computeBranchRanking(gid, filterFn) {
+        const response = await fetch(BASE_URL + gid);
+        const text = await response.text();
+        const rows = parseCSV(text);
+
+        const headers = rows[0].map(h => h.trim());
+        let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อผู้ใช้งาน') || h.includes('ผู้ประเมิน') || h.includes('ชื่อ'));
+        let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
+        let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
+
+        if (userCol === -1) userCol = 3;
+        if (scoreCol === -1) scoreCol = 2;
+        if (timeCol === -1) timeCol = 0;
+
+        const branchScores = {};
+        const submittedUsers = new Set();
+        let totalScore = 0;
+        let count = 0;
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = row[timeCol];
+            const uName = row[userCol];
+            const score = parseFloat(row[scoreCol]);
+
+            if (filterFn(timestamp) && uName && !isNaN(score)) {
+                if (!submittedUsers.has(uName)) {
+                    submittedUsers.add(uName);
+                    count++;
+                    totalScore += score;
+
+                    const parts = uName.split(' สาขา');
+                    if (parts.length > 1) {
+                        const branch = 'สาขา' + parts[1];
+                        if (!branchScores[branch]) branchScores[branch] = [];
+                        branchScores[branch].push(score);
+                    }
+                }
+            }
+        }
+
+        const avg = count > 0 ? (totalScore / count).toFixed(2) : 0;
+        return { branchScores, avg, count };
+    }
+
+    // --- โหลดกราฟอันดับสาขาประจำสัปดาห์นี้ (แยก Pretest / Posttest) ---
+    async function loadWeeklyRankings(role) {
+        try {
+            const [pretestResult, posttestResult] = await Promise.all([
+                computeBranchRanking(PRETEST_SCORES_GID, isCurrentWeek),
+                computeBranchRanking(SCORES_GID, isCurrentWeek)
+            ]);
+
+            if (role === 'admin') {
+                renderChart('weeklyPretestChartAdmin', pretestResult.branchScores, pretestResult.avg);
+                renderChart('weeklyPosttestChartAdmin', posttestResult.branchScores, posttestResult.avg);
+            } else {
+                renderChart('weeklyPretestChart', pretestResult.branchScores, pretestResult.avg);
+                renderChart('weeklyPosttestChart', posttestResult.branchScores, posttestResult.avg);
+            }
+        } catch (e) {
+            console.error('Weekly ranking error:', e);
+        }
     }
 
     // --- Dashboard & Scoring (With Monthly Filter) ---
