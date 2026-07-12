@@ -84,12 +84,41 @@
                 </div>
 
                 <div class="col-right">
-                    <div class="card">
+                    <div class="card" id="pretest-card">
+                        <div class="card-header"><i class="fa-solid fa-file-pen"></i> แบบทดสอบก่อนเรียน (Pretest)</div>
+                        <div class="card-body">
+                            <p class="desc-text" id="pretest-desc">กรุณาทำแบบทดสอบก่อนเรียนให้เสร็จก่อน จึงจะสามารถดูคลิปวิดีโอและทำแบบทดสอบหลังเรียนได้</p>
+                            <button id="take-pretest-button" class="btn-action purple">เริ่มทำ Pretest <i class="fa-solid fa-play"></i></button>
+                            <button id="check-pretest-button" class="btn-action outline" style="margin-top:10px;">ตรวจสอบผล Pretest ล่าสุด</button>
+
+                            <div id="pretest-score-display" class="result-box hidden">
+                                <div class="result-row">
+                                    <span>คะแนน Pretest:</span>
+                                    <strong id="pretest-score-val" class="score-val">-</strong>
+                                </div>
+                                <div class="result-row">
+                                    <span>สถานะ:</span>
+                                    <span id="pretest-status-val" class="status-badge">-</span>
+                                </div>
+                            </div>
+                            <div id="pretest-error" class="error-message"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="video-card">
+                        <div class="lock-overlay" id="video-lock-overlay">
+                            <i class="fa-solid fa-lock"></i>
+                            <p>ทำ Pretest ให้เสร็จก่อน จึงจะดูคลิปวิดีโอได้</p>
+                        </div>
                         <div class="card-header"><i class="fa-solid fa-video"></i> คลิปวิดีโอประจำเดือน</div>
                         <div class="card-body" id="video-list"></div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" id="quiz-card">
+                        <div class="lock-overlay" id="quiz-lock-overlay">
+                            <i class="fa-solid fa-lock"></i>
+                            <p>ทำ Pretest ให้เสร็จก่อน จึงจะทำแบบทดสอบได้</p>
+                        </div>
                         <div class="card-header"><i class="fa-solid fa-clipboard-question"></i> แบบทดสอบ</div>
                         <div class="card-body">
                             <p class="desc-text">กรุณาดูคลิปวิดีโอให้จบก่อนเริ่มทำแบบทดสอบ</p>
@@ -97,7 +126,7 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" id="score-card">
                         <div class="card-header"><i class="fa-solid fa-chart-line"></i> ผลคะแนนของคุณ (เดือนนี้)</div>
                         <div class="card-body">
                             <button id="check-score-button" class="btn-action outline">ตรวจสอบคะแนนล่าสุด</button>
@@ -166,7 +195,9 @@
                     <div class="card-header"><i class="fa-brands fa-google-drive"></i> จัดการเนื้อหา</div>
                     <div class="card-body">
                         <div class="content-links">
-                            <h4>วิดีโอปัจจุบัน</h4>
+                            <h4>แบบทดสอบก่อนเรียนปัจจุบัน (Pretest)</h4>
+                            <ul id="admin-pretest-list" class="simple-list"></ul>
+                            <h4 style="margin-top:15px;">วิดีโอปัจจุบัน</h4>
                             <ul id="admin-video-list" class="simple-list"></ul>
                             <h4 style="margin-top:15px;">แบบทดสอบปัจจุบัน</h4>
                             <ul id="admin-quiz-list" class="simple-list"></ul>
