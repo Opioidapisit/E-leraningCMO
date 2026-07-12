@@ -4,8 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // *** GIDs ***
     const USERS_GID = '992216903';   // GID สำหรับรายชื่อพนักงาน (ตามที่คุณแจ้ง)
-    const LINKS_GID = '1566756560';  // GID สำหรับลิงก์ Video/Quiz
-    const SCORES_GID = '441233492';  // GID สำหรับผลคะแนน
+    const LINKS_GID = '1566756560';  // GID สำหรับลิงก์ Video/Quiz (คอลัมน์ D = ลิงก์ Pretest)
+    const SCORES_GID = '441233492';  // GID สำหรับผลคะแนนแบบทดสอบ (หลังเรียน)
+
+    // *** TODO: ใส่ GID ของแท็บผลตอบกลับ Pretest (จาก Google Form Pretest ที่แยกต่างหาก) ***
+    const PRETEST_SCORES_GID = '441233492';
+
+    // เกณฑ์ผ่าน Pretest (คะแนนเต็ม 10)
+    const PRETEST_PASS_SCORE = 8;
 
     const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=`;
 
@@ -156,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Fetch Links (Hardcode Column B & C) ---
+    // --- Fetch Links (Hardcode Column B, C & D) ---
     async function fetchLinks() {
         try {
             const response = await fetch(BASE_URL + LINKS_GID);
@@ -165,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const vLinks = [];
             const qLinks = [];
+            const pLinks = [];
 
             // เริ่มแถวที่ 2 (index 1)
             for (let i = 1; i < rows.length; i++) {
@@ -173,15 +180,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 const videoCell = row[1]; 
                 // ดึง Col C (index 2) เป็น Quiz
                 const quizCell = row[2];
+                // ดึง Col D (index 3) เป็น Pretest
+                const pretestCell = row[3];
 
                 if (videoCell && videoCell.includes('http')) vLinks.push(videoCell.trim());
                 if (quizCell && quizCell.includes('http')) qLinks.push(quizCell.trim());
+                if (pretestCell && pretestCell.includes('http')) pLinks.push(pretestCell.trim());
             }
-            return { vLinks, qLinks };
+            return { vLinks, qLinks, pLinks };
         } catch (e) {
             console.error("Link Error:", e);
-            return { vLinks: [], qLinks: [] };
+            return { vLinks: [], qLinks: [], pLinks: [] };
         }
+    }
+
+    // --- Fetch คะแนนล่าสุดของผู้ใช้ (ใช้ได้ทั้ง Pretest และ Posttest) ---
+    async function fetchLatestScore(gid, myName) {
+        const response = await fetch(BASE_URL + gid);
+        const text = await response.text();
+        const rows = parseCSV(text);
+        const headers = rows[0].map(h => h.trim());
+
+        let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อ'));
+        let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
+        let statusCol = headers.findIndex(h => h.includes('Status') || h.includes('สถานะ'));
+        let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
+
+        if (userCol === -1) userCol = 3;
+        if (scoreCol === -1) scoreCol = 2;
+        if (statusCol === -1) statusCol = rows[0].length - 1;
+        if (timeCol === -1) timeCol = 0;
+
+        // ค้นหาจากล่างขึ้นบน (ล่าสุด) และต้องเป็นเดือนปัจจุบัน
+        for (let i = rows.length - 1; i > 0; i--) {
+            const row = rows[i];
+            if (row[userCol] === myName && isCurrentMonth(row[timeCol])) {
+                return {
+                    found: true,
+                    score: parseFloat(row[scoreCol]),
+                    status: row[statusCol] || ''
+                };
+            }
+        }
+        return { found: false };
     }
 
     function renderList(container, links, type) {
@@ -197,20 +238,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- Logic XXX Replacement สำหรับแสดงผล (ถ้าต้องการ) ---
             // ปกติเราเปลี่ยนตอนกดปุ่มใหญ่ แต่ถ้าจะเปลี่ยนในลิสต์ด้วยก็ทำได้
             let finalLink = link;
-            if (type === 'quiz' && loggedInUser && link.includes('XXX')) {
+            if ((type === 'quiz' || type === 'pretest') && loggedInUser && link.includes('XXX')) {
                  finalLink = link.replace('XXX', encodeURIComponent(usersData[loggedInUser].name));
             }
 
+            const icon = type === 'video' ? 'fa-play-circle' : (type === 'pretest' ? 'fa-file-pen' : 'fa-pen-to-square');
+            const label = type === 'video' ? 'คลิปวิดีโอ' : (type === 'pretest' ? 'Pretest' : 'แบบทดสอบ');
             div.innerHTML = `
-                <i class="fa-solid ${type === 'video' ? 'fa-play-circle' : 'fa-pen-to-square'}"></i>
-                <a href="${finalLink}" target="_blank">${type === 'video' ? 'คลิปวิดีโอ' : 'แบบทดสอบ'} ชุดที่ ${idx + 1}</a>
+                <i class="fa-solid ${icon}"></i>
+                <a href="${finalLink}" target="_blank">${label} ชุดที่ ${idx + 1}</a>
             `;
             container.appendChild(div);
         });
     }
 
     async function loadUserContent() {
-        const { vLinks, qLinks } = await fetchLinks();
+        const { vLinks, qLinks, pLinks } = await fetchLinks();
         renderList(document.getElementById('video-list'), vLinks, 'video');
         
         // --- Logic ปุ่มเริ่มทำแบบทดสอบ (XXX Replacement) ---
@@ -227,10 +270,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('ยังไม่มีแบบทดสอบ');
             }
         };
+
+        // --- Logic ปุ่มเริ่มทำ Pretest (XXX Replacement) ---
+        const pretestBtn = document.getElementById('take-pretest-button');
+        pretestBtn.onclick = () => {
+            if (pLinks.length > 0) {
+                let link = pLinks[0];
+                if (link.includes('XXX')) {
+                    link = link.replace('XXX', encodeURIComponent(usersData[loggedInUser].name));
+                }
+                window.open(link, '_blank');
+            } else {
+                alert('ยังไม่มีแบบทดสอบก่อนเรียน (Pretest)');
+            }
+        };
+
+        // --- ตรวจสอบสถานะ Pretest ครั้งแรก + ปุ่มตรวจสอบซ้ำ ---
+        document.getElementById('check-pretest-button').onclick = refreshPretestStatus;
+        await refreshPretestStatus();
+    }
+
+    // --- ตรวจสอบสถานะ Pretest แล้วปลด/ล็อกคลิปวิดีโอและแบบทดสอบ ---
+    async function refreshPretestStatus() {
+        const errorDiv = document.getElementById('pretest-error');
+        const displayDiv = document.getElementById('pretest-score-display');
+        const scoreVal = document.getElementById('pretest-score-val');
+        const statusVal = document.getElementById('pretest-status-val');
+
+        const videoCard = document.getElementById('video-card');
+        const quizCard = document.getElementById('quiz-card');
+        const videoOverlay = document.getElementById('video-lock-overlay');
+        const quizOverlay = document.getElementById('quiz-lock-overlay');
+
+        const scoreCard = document.getElementById('score-card');
+        const scoreCardHeader = scoreCard.querySelector('.card-header');
+        const checkScoreBtn = document.getElementById('check-score-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const displayScore = document.getElementById('display-score');
+        const displayStatus = document.getElementById('display-status');
+
+        errorDiv.textContent = '';
+        videoCard.classList.remove('hidden');
+        quizCard.classList.remove('hidden');
+
+        try {
+            const myName = usersData[loggedInUser].name;
+            const result = await fetchLatestScore(PRETEST_SCORES_GID, myName);
+
+            if (!result.found) {
+                // ยังไม่ได้ทำ Pretest -> ล็อกคลิปวิดีโอและแบบทดสอบไว้ก่อน
+                displayDiv.classList.add('hidden');
+                videoOverlay.classList.remove('hidden');
+                quizOverlay.classList.remove('hidden');
+                scoreCardHeader.innerHTML = '<i class="fa-solid fa-chart-line"></i> ผลคะแนนของคุณ (เดือนนี้)';
+                checkScoreBtn.classList.remove('hidden');
+                scoreDisplay.classList.add('hidden');
+                errorDiv.textContent = 'กรุณาทำ Pretest ให้เสร็จก่อน แล้วกด "ตรวจสอบผล Pretest ล่าสุด" อีกครั้ง';
+                return;
+            }
+
+            // แสดงผลคะแนน Pretest
+            scoreVal.textContent = result.score;
+            const passed = result.score >= PRETEST_PASS_SCORE;
+            statusVal.textContent = passed ? 'ผ่านเกณฑ์' : 'ยังไม่ผ่านเกณฑ์';
+            statusVal.style.background = passed ? '#dcfce7' : '#fef2f2';
+            statusVal.style.color = passed ? '#166534' : '#dc2626';
+            displayDiv.classList.remove('hidden');
+
+            if (passed) {
+                // ผ่านเกณฑ์ (>=8) -> ไม่ต้องดูคลิป/ทำแบบทดสอบ ใช้คะแนน Pretest แทนคะแนนสอบ
+                videoCard.classList.add('hidden');
+                quizCard.classList.add('hidden');
+
+                scoreCardHeader.innerHTML = '<i class="fa-solid fa-chart-line"></i> ผลคะแนนของคุณ (ใช้คะแนน Pretest)';
+                checkScoreBtn.classList.add('hidden');
+
+                displayScore.textContent = result.score;
+                displayStatus.textContent = result.status || 'ผ่านเกณฑ์ (Pretest)';
+                displayStatus.style.background = '#dcfce7';
+                displayStatus.style.color = '#166534';
+                scoreDisplay.classList.remove('hidden');
+            } else {
+                // ทำ Pretest แล้วแต่ยังไม่ผ่านเกณฑ์ -> ปลดล็อกคลิปวิดีโอ/แบบทดสอบตามปกติ
+                videoOverlay.classList.add('hidden');
+                quizOverlay.classList.add('hidden');
+                scoreCardHeader.innerHTML = '<i class="fa-solid fa-chart-line"></i> ผลคะแนนของคุณ (เดือนนี้)';
+                checkScoreBtn.classList.remove('hidden');
+                scoreDisplay.classList.add('hidden');
+            }
+        } catch (e) {
+            console.error('Pretest status error:', e);
+            errorDiv.textContent = 'เกิดข้อผิดพลาดในการตรวจสอบสถานะ Pretest กรุณาตรวจสอบ GID ของแท็บ Pretest';
+        }
     }
 
     async function loadAdminContent() {
-        const { vLinks, qLinks } = await fetchLinks();
+        const { vLinks, qLinks, pLinks } = await fetchLinks();
+        renderList(document.getElementById('admin-pretest-list'), pLinks, 'pretest');
         renderList(document.getElementById('admin-video-list'), vLinks, 'video');
         renderList(document.getElementById('admin-quiz-list'), qLinks, 'quiz');
     }
