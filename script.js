@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // *** GIDs ***
     const USERS_GID = '1625747611';   // GID สำหรับรายชื่อพนักงาน (ตามที่คุณแจ้ง)
     const LINKS_GID = '1591330230';  // GID สำหรับลิงก์ Video/Quiz (คอลัมน์ D = ลิงก์ Pretest)
-    const SCORES_GID = '997924042';  // GID สำหรับผลคะแนนแบบทดสอบ (หลังเรียน)
+    const SCORES_GID = '1752312373';  // GID สำหรับผลคะแนนแบบทดสอบ (หลังเรียน)
 
     // *** TODO: ใส่ GID ของแท็บผลตอบกลับ Pretest (จาก Google Form Pretest ที่แยกต่างหาก) ***
     const PRETEST_SCORES_GID = '997924042';
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Load Users (From Sheet 992216903) ---
+    // --- Load Users (From Sheet 1625747611) ---
     async function loadUsers() {
         try {
             const response = await fetch(BASE_URL + USERS_GID);
@@ -194,8 +194,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Fetch คะแนนล่าสุดของผู้ใช้ (ใช้ได้ทั้ง Pretest และ Posttest) ---
-    async function fetchLatestScore(gid, myName) {
+    // --- Fetch คะแนนของผู้ใช้ในเดือนนี้ ---
+    // mode: 'latest'   -> เอาคะแนนครั้งล่าสุด (ใช้กับแบบทดสอบ/posttest)
+    // mode: 'earliest' -> เอาคะแนนครั้งแรกสุดของเดือน (ใช้กับ Pretest)
+    // ถ้า Pretest กับแบบทดสอบใช้ฟอร์ม/แท็บเดียวกัน (PRETEST_SCORES_GID === SCORES_GID)
+    // ระบบจะถือว่า "ครั้งแรกของเดือน" คือ Pretest และ "ครั้งล่าสุด" คือคะแนนแบบทดสอบ
+    // ทำให้ 1 ฟอร์ม/1 ลิงก์ ใช้แทนกันได้โดยไม่ต้องแยกฟอร์ม
+    async function fetchScoreForMonth(gid, myName, mode) {
         const response = await fetch(BASE_URL + gid);
         const text = await response.text();
         const rows = parseCSV(text);
@@ -211,18 +216,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statusCol === -1) statusCol = rows[0].length - 1;
         if (timeCol === -1) timeCol = 0;
 
-        // ค้นหาจากล่างขึ้นบน (ล่าสุด) และต้องเป็นเดือนปัจจุบัน
-        for (let i = rows.length - 1; i > 0; i--) {
+        // เก็บทุกแถวของ user คนนี้ในเดือนปัจจุบัน เรียงตามลำดับที่ปรากฏในชีท (เก่า -> ใหม่)
+        const matches = [];
+        for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (row[userCol] === myName && isCurrentMonth(row[timeCol])) {
-                return {
-                    found: true,
-                    score: parseFloat(row[scoreCol]),
-                    status: row[statusCol] || ''
-                };
+                matches.push({ score: parseFloat(row[scoreCol]), status: row[statusCol] || '' });
             }
         }
-        return { found: false };
+
+        if (matches.length === 0) return { found: false, attemptCount: 0 };
+
+        const chosen = mode === 'earliest' ? matches[0] : matches[matches.length - 1];
+        return { found: true, score: chosen.score, status: chosen.status, attemptCount: matches.length };
+    }
+
+    // เก็บชื่อฟังก์ชันเดิมไว้เผื่อโค้ดส่วนอื่นเรียกใช้ (เทียบเท่า mode: 'latest')
+    function fetchLatestScore(gid, myName) {
+        return fetchScoreForMonth(gid, myName, 'latest');
     }
 
     function renderList(container, links, type) {
@@ -315,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const myName = usersData[loggedInUser].name;
-            const result = await fetchLatestScore(PRETEST_SCORES_GID, myName);
+            const result = await fetchScoreForMonth(PRETEST_SCORES_GID, myName, 'earliest');
 
             if (!result.found) {
                 // ยังไม่ได้ทำ Pretest -> ล็อกคลิปวิดีโอและแบบทดสอบไว้ก่อน
@@ -457,47 +468,29 @@ document.addEventListener('DOMContentLoaded', () => {
         displayDiv.classList.add('hidden');
 
         try {
-            const response = await fetch(BASE_URL + SCORES_GID);
-            const text = await response.text();
-            const rows = parseCSV(text);
-            const headers = rows[0].map(h => h.trim());
-            
-            let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อ'));
-            let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
-            let statusCol = headers.findIndex(h => h.includes('Status') || h.includes('สถานะ'));
-            let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
-            
-            if (userCol === -1) userCol = 3; 
-            if (scoreCol === -1) scoreCol = 2;
-            if (statusCol === -1) statusCol = rows[0].length - 1; 
-            if (timeCol === -1) timeCol = 0;
-
             const myName = usersData[loggedInUser].name;
-            let found = false;
+            const result = await fetchScoreForMonth(SCORES_GID, myName, 'latest');
 
-            // ค้นหาจากล่างขึ้นบน (ล่าสุด) และต้องเป็นเดือนปัจจุบัน
-            for (let i = rows.length - 1; i > 0; i--) {
-                const row = rows[i];
-                if (row[userCol] === myName && isCurrentMonth(row[timeCol])) {
-                    scoreVal.textContent = row[scoreCol];
-                    statusVal.textContent = row[statusCol] || 'ส่งแล้ว';
-                    
-                    if(row[statusCol] && row[statusCol].includes('ตก')) {
-                         statusVal.style.background = '#fef2f2';
-                         statusVal.style.color = '#dc2626';
-                    } else {
-                         statusVal.style.background = '#dcfce7';
-                         statusVal.style.color = '#166534';
-                    }
-
-                    displayDiv.classList.remove('hidden');
-                    found = true;
-                    break; 
-                }
+            // ถ้า Pretest กับแบบทดสอบใช้แท็บ/ฟอร์มเดียวกัน (GID เดียวกัน) และผู้ใช้ยังมีแค่ 1 ครั้ง
+            // แปลว่านั่นคือครั้งที่ทำ Pretest ไป ยังไม่ได้ทำแบบทดสอบจริง จึงยังไม่ควรแสดงเป็นคะแนนสอบ
+            const isSharedSheet = PRETEST_SCORES_GID === SCORES_GID;
+            if (!result.found || (isSharedSheet && result.attemptCount < 2)) {
+                errorDiv.textContent = 'ไม่พบผลคะแนนแบบทดสอบของเดือนนี้';
+                return;
             }
 
-            if (!found) errorDiv.textContent = 'ไม่พบผลคะแนนของเดือนนี้';
+            scoreVal.textContent = result.score;
+            statusVal.textContent = result.status || 'ส่งแล้ว';
 
+            if (result.status && result.status.includes('ตก')) {
+                statusVal.style.background = '#fef2f2';
+                statusVal.style.color = '#dc2626';
+            } else {
+                statusVal.style.background = '#dcfce7';
+                statusVal.style.color = '#166534';
+            }
+
+            displayDiv.classList.remove('hidden');
         } catch (e) {
             errorDiv.textContent = 'เกิดข้อผิดพลาดในการดึงข้อมูล';
         }
