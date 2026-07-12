@@ -81,6 +81,22 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-ranking-star"></i> อันดับสาขาประจำสัปดาห์นี้
+                        </div>
+                        <div class="card-body">
+                            <h4 class="chart-subtitle">แบบทดสอบก่อนเรียน (Pretest)</h4>
+                            <div class="chart-container">
+                                <canvas id="weeklyPretestChart"></canvas>
+                            </div>
+                            <h4 class="chart-subtitle" style="margin-top:20px;">แบบทดสอบหลังเรียน (Posttest)</h4>
+                            <div class="chart-container">
+                                <canvas id="weeklyPosttestChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-right">
@@ -180,6 +196,26 @@
                         </div>
                         <div class="chart-container large">
                             <canvas id="branchChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <div class="card-header"><i class="fa-solid fa-ranking-star"></i> อันดับสาขาประจำสัปดาห์นี้</div>
+                    <div class="card-body">
+                        <div class="weekly-chart-grid">
+                            <div>
+                                <h4 class="chart-subtitle">แบบทดสอบก่อนเรียน (Pretest)</h4>
+                                <div class="chart-container">
+                                    <canvas id="weeklyPretestChartAdmin"></canvas>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="chart-subtitle">แบบทดสอบหลังเรียน (Posttest)</h4>
+                                <div class="chart-container">
+                                    <canvas id="weeklyPosttestChartAdmin"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
