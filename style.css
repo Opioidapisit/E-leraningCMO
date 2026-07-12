@@ -122,6 +122,8 @@ button {
 .btn-action.green { background: var(--success); }
 .btn-action.green:hover { background: #146c43; }
 .btn-action.blue { background: var(--primary-btn); }
+.btn-action.purple { background: #6f42c1; }
+.btn-action.purple:hover { background: #5a34a3; }
 .btn-action.outline { background: transparent; border: 1px solid var(--primary-btn); color: var(--primary-btn); }
 .btn-action.outline:hover { background: #e9f2ff; }
 
@@ -175,8 +177,25 @@ button {
     box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     border: 1px solid #eaedf0;
     overflow: hidden;
+    position: relative;
 }
 .card.full-width { grid-column: 1 / -1; }
+
+/* --- Lock Overlay (ใช้ล็อกการ์ดจนกว่าจะทำ Pretest ผ่าน) --- */
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 5;
+}
+.lock-overlay i { font-size: 1.8em; color: #adb5bd; margin-bottom: 10px; }
+.lock-overlay p { margin: 0; color: var(--text-secondary); font-weight: 500; font-size: 0.95em; max-width: 220px; }
 
 .card-header {
     background: #ffffff;
