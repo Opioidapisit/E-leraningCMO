@@ -376,12 +376,18 @@ document.addEventListener('DOMContentLoaded', () => {
         videoCard.classList.remove('hidden');
         quizCard.classList.remove('hidden');
 
+        const pretestBtn = document.getElementById('take-pretest-button');
+
         try {
             const myName = usersData[loggedInUser].name;
             const result = await fetchScoreForMonth(PRETEST_SCORES_GID, myName, 'earliest');
 
             if (!result.found) {
-                // ยังไม่ได้ทำ Pretest -> ล็อกคลิปวิดีโอและแบบทดสอบไว้ก่อน
+                // ยังไม่ได้ทำ Pretest -> ปุ่มยังกดได้ตามปกติ และล็อกคลิปวิดีโอ/แบบทดสอบไว้ก่อน
+                pretestBtn.disabled = false;
+                pretestBtn.classList.remove('btn-disabled');
+                pretestBtn.innerHTML = 'เริ่มทำ Pretest <i class="fa-solid fa-play"></i>';
+
                 displayDiv.classList.add('hidden');
                 videoOverlay.classList.remove('hidden');
                 quizOverlay.classList.remove('hidden');
@@ -391,6 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorDiv.textContent = 'กรุณาทำ Pretest ให้เสร็จก่อน แล้วกด "ตรวจสอบผล Pretest ล่าสุด" อีกครั้ง';
                 return;
             }
+
+            // ทำ Pretest ไปแล้ว (ไม่ว่าจะผ่านหรือไม่ผ่าน) -> ล็อกปุ่มไม่ให้ทำซ้ำ
+            pretestBtn.disabled = true;
+            pretestBtn.classList.add('btn-disabled');
+            pretestBtn.innerHTML = 'ทำ Pretest แล้ว (ทำได้ครั้งเดียว) <i class="fa-solid fa-lock"></i>';
 
             // แสดงผลคะแนน Pretest
             scoreVal.textContent = result.score;
