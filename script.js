@@ -501,52 +501,89 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- ดึงข้อมูลดิบของเดือนนี้จากแท็บคะแนนใดๆ (คืนเป็น array ของ {user, score}) ---
+    async function fetchMonthlyRows(gid) {
+        const response = await fetch(BASE_URL + gid);
+        const text = await response.text();
+        const rows = parseCSV(text);
+        const headers = rows[0].map(h => h.trim());
+
+        let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อผู้ใช้งาน') || h.includes('ผู้ประเมิน') || h.includes('ชื่อ'));
+        let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
+        let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
+
+        if (userCol === -1) userCol = 3;
+        if (scoreCol === -1) scoreCol = 2;
+        if (timeCol === -1) timeCol = 0;
+
+        const result = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = row[timeCol];
+            const user = row[userCol];
+            const score = parseFloat(row[scoreCol]);
+            if (isCurrentMonth(timestamp) && user && !isNaN(score)) {
+                result.push({ user, score });
+            }
+        }
+        return result;
+    }
+
+    // --- สรุปผลลัพธ์สุดท้ายของแต่ละคนในเดือนนี้ ---
+    // กติกาเดียวกับหน้า Pretest ของผู้ใช้: ถ้า Pretest ผ่านเกณฑ์ (>=PRETEST_PASS_SCORE) ถือว่าเสร็จแล้ว ใช้คะแนน Pretest
+    // ถ้ายังไม่ผ่าน Pretest แต่มีคะแนน Posttest (ครั้งล่าสุด) ถือว่าเสร็จแล้ว ใช้คะแนน Posttest แทน
+    async function computeMonthlyFinalResults() {
+        const [pretestRows, posttestRows] = await Promise.all([
+            fetchMonthlyRows(PRETEST_SCORES_GID),
+            fetchMonthlyRows(SCORES_GID)
+        ]);
+
+        // คะแนน Pretest สูงสุดที่แต่ละคนทำได้ในเดือนนี้ (เผื่อทำหลายครั้ง)
+        const pretestBest = {};
+        pretestRows.forEach(r => {
+            if (!(r.user in pretestBest) || r.score > pretestBest[r.user]) {
+                pretestBest[r.user] = r.score;
+            }
+        });
+
+        // คะแนน Posttest ล่าสุดของแต่ละคนในเดือนนี้ (แถวท้ายสุดในชีท = ล่าสุด)
+        const posttestLatest = {};
+        posttestRows.forEach(r => { posttestLatest[r.user] = r.score; });
+
+        const finalResults = {}; // user -> score
+        const allUsers = new Set([...Object.keys(pretestBest), ...Object.keys(posttestLatest)]);
+        allUsers.forEach(user => {
+            if (pretestBest[user] !== undefined && pretestBest[user] >= PRETEST_PASS_SCORE) {
+                finalResults[user] = pretestBest[user];
+            } else if (posttestLatest[user] !== undefined) {
+                finalResults[user] = posttestLatest[user];
+            }
+            // ถ้า Pretest ยังไม่ผ่าน และยังไม่มี Posttest -> ยังไม่นับว่าเสร็จ (ไม่เพิ่มเข้า finalResults)
+        });
+
+        return finalResults;
+    }
+
     // --- Dashboard & Scoring (With Monthly Filter) ---
     async function loadDashboard(role) {
         try {
-            const response = await fetch(BASE_URL + SCORES_GID);
-            const text = await response.text();
-            const rows = parseCSV(text);
-            
-            const headers = rows[0].map(h => h.trim());
-            
-            // หา Index (พยายามหาให้เจอ)
-            let userCol = headers.findIndex(h => h.includes('User') || h.includes('ชื่อผู้ใช้งาน') || h.includes('ผู้ประเมิน'));
-            let scoreCol = headers.findIndex(h => h.includes('คะแนน') || h.includes('Score'));
-            let timeCol = headers.findIndex(h => h.includes('Timestamp') || h.includes('ประทับเวลา'));
-
-            // Fallback
-            if (userCol === -1) userCol = 3; 
-            if (scoreCol === -1) scoreCol = 2; 
-            if (timeCol === -1) timeCol = 0; 
+            const finalResults = await computeMonthlyFinalResults();
 
             const branchScores = {};
-            const submittedUsers = new Set();
             let totalScore = 0;
             let count = 0;
 
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const timestamp = row[timeCol];
-                const uName = row[userCol];
-                const score = parseFloat(row[scoreCol]);
+            Object.entries(finalResults).forEach(([uName, score]) => {
+                count++;
+                totalScore += score;
 
-                // *** กรองเดือนปัจจุบันตรงนี้ ***
-                if (isCurrentMonth(timestamp) && uName && !isNaN(score)) {
-                    if (!submittedUsers.has(uName)) {
-                        submittedUsers.add(uName);
-                        count++;
-                        totalScore += score;
-
-                        const parts = uName.split(' สาขา');
-                        if (parts.length > 1) {
-                            const branch = 'สาขา' + parts[1];
-                            if (!branchScores[branch]) branchScores[branch] = [];
-                            branchScores[branch].push(score);
-                        }
-                    }
+                const parts = uName.split(' สาขา');
+                if (parts.length > 1) {
+                    const branch = 'สาขา' + parts[1];
+                    if (!branchScores[branch]) branchScores[branch] = [];
+                    branchScores[branch].push(score);
                 }
-            }
+            });
 
             const avg = count > 0 ? (totalScore / count).toFixed(2) : 0;
             const allStaffCount = Object.values(usersData).filter(u => u.role !== 'admin').length;
@@ -559,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const list = document.getElementById('pending-user-list');
                 list.innerHTML = '';
                 Object.values(usersData).forEach(u => {
-                    if (u.role !== 'admin' && !submittedUsers.has(u.name)) {
+                    if (u.role !== 'admin' && !(u.name in finalResults)) {
                         const li = document.createElement('li');
                         li.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:orange;"></i> ${u.name}`;
                         list.appendChild(li);
