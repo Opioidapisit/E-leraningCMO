@@ -126,6 +126,12 @@ button {
 .btn-action.purple:hover { background: #5a34a3; }
 .btn-action.outline { background: transparent; border: 1px solid var(--primary-btn); color: var(--primary-btn); }
 .btn-action.outline:hover { background: #e9f2ff; }
+.btn-action:disabled, .btn-action.btn-disabled {
+    background: #cbd5e1 !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
 
 /* --- Main Layout --- */
 .main-container {
